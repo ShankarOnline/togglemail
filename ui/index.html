@@ -76,6 +76,10 @@
           <button data-act="delete" title="Delete (Del)">Delete</button>
           <button data-act="unread">Mark unread</button>
           <button data-act="flag">☆ Flag</button>
+          <button data-act="snooze" title="Hide until a later time">⏰ Snooze</button>
+          <button data-act="unsnooze" title="Back to the inbox now">Unsnooze</button>
+          <button data-act="sendnow" class="primary" title="Send this scheduled email now">Send now</button>
+          <button data-act="unschedule" title="Don't send; move to Drafts">Cancel sending</button>
           <select id="move-to" title="Move to folder"><option value="">Move to…</option></select>
         </div>
         <h1 id="r-subject"></h1>
@@ -172,6 +176,7 @@
       <div class="actions">
         <button type="button" id="compose-cancel">Discard</button>
         <span class="grow"></span>
+        <button type="button" id="schedule-btn" title="Send later">⏰ Schedule…</button>
         <button type="submit" class="primary" id="send-btn">Send</button>
       </div>
     </form>
@@ -204,8 +209,11 @@
             <select data-pref="markRead"><option value="open">When I open them</option><option value="never">Only when I choose</option></select>
           </label>
           <label>Pictures from the internet
-            <select data-pref="images"><option value="ask">Ask for each message</option><option value="always">Always show</option></select>
+            <select data-pref="images"><option value="ask">Ask, and remember the senders I allow</option><option value="always">Always show</option></select>
           </label>
+          <p class="note">Pictures always show for phonemail.net, shankars.org, jaiaditya.org, knkoa.org and toggleminds.com.
+            Senders you allowed:</p>
+          <ul id="trusted-list" class="rows"></ul>
           <label>Ask before deleting
             <select data-pref="confirmDelete"><option value="no">No</option><option value="yes">Yes</option></select>
           </label>
@@ -284,6 +292,13 @@
   </dialog>
 
   <div id="ctx-menu" class="menu ctx" hidden></div>
+  <div id="time-menu" class="menu ctx time" hidden>
+    <div class="menu-title" id="time-title">When?</div>
+    <div id="time-presets"></div>
+    <div class="menu-title">Pick a date and time</div>
+    <input id="time-pick" type="datetime-local">
+    <button type="button" id="time-set" class="primary">Set</button>
+  </div>
   <div id="toast" hidden></div>
   <script src="app.js"></script>
 </body>

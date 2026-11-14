@@ -6,6 +6,7 @@ use base64::Engine;
 use lettre::message::{header::ContentType, Attachment, Mailbox, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::transport::smtp::client::{Tls, TlsParameters};
+use lettre::address::Envelope;
 use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use serde::Deserialize;
 
@@ -79,7 +80,7 @@ pub fn build(acc: &Account, d: &Draft) -> Result<Message> {
     Ok(msg)
 }
 
-pub async fn send(acc: &Account, password: &str, msg: Message) -> Result<()> {
+fn transport(acc: &Account, password: &str) -> Result<AsyncSmtpTransport<Tokio1Executor>> {
     let creds = Credentials::new(acc.username.clone(), password.to_string());
     let params = TlsParameters::builder(acc.smtp_host.clone())
         .dangerous_accept_invalid_certs(acc.accept_invalid_certs)
@@ -89,12 +90,24 @@ pub async fn send(acc: &Account, password: &str, msg: Message) -> Result<()> {
         Security::Tls => Tls::Wrapper(params),
         Security::Starttls => Tls::Required(params),
     };
-    let transport = AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&acc.smtp_host)
+    Ok(AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&acc.smtp_host)
         .tls(tls)
         .port(acc.smtp_port)
-    .credentials(creds)
-    .timeout(Some(std::time::Duration::from_secs(60)))
-    .build();
-    transport.send(msg).await.map_err(|e| anyhow!("sending failed: {e}"))?;
+        .credentials(creds)
+        .timeout(Some(std::time::Duration::from_secs(60)))
+        .build())
+}
+
+pub async fn send(acc: &Account, password: &str, msg: Message) -> Result<()> {
+    transport(acc, password)?.send(msg).await.map_err(|e| anyhow!("sending failed: {e}"))?;
+    Ok(())
+}
+
+/// Sends an already-formatted message (scheduled mail) to the given envelope.
+pub async fn send_raw(acc: &Account, password: &str, envelope: &Envelope, raw: &[u8]) -> Result<()> {
+    transport(acc, password)?
+        .send_raw(envelope, raw)
+        .await
+        .map_err(|e| anyhow!("sending failed: {e}"))?;
     Ok(())
 }

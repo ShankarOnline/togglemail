@@ -24,7 +24,15 @@ pub struct Summary {
     pub flagged: bool,
     pub answered: bool,
     pub size: u32,
+    /// Scheduled mail: when ToggleMail will send it (unix seconds), else 0.
+    pub send_at: i64,
+    /// Snoozed mail: when it returns to the inbox (unix seconds), else 0.
+    pub snoozed_until: i64,
 }
+
+/// Header that holds a scheduled message's send time, and keyword prefix for snoozed mail.
+pub const SEND_AT_HEADER: &str = "X-ToggleMail-Send-At";
+pub const SNOOZE_KEYWORD: &str = "$SnoozedUntil";
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Attachment {
@@ -81,6 +89,15 @@ pub fn summary(uid: u32, header: &[u8], size: u32, flags: &[String]) -> Summary 
         flagged: has("\\Flagged"),
         answered: has("\\Answered"),
         size,
+        send_at: msg
+            .as_ref()
+            .and_then(|m| m.header_raw(SEND_AT_HEADER))
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(0),
+        snoozed_until: flags
+            .iter()
+            .find_map(|f| f.strip_prefix(SNOOZE_KEYWORD).and_then(|t| t.parse().ok()))
+            .unwrap_or(0),
     }
 }
 
@@ -215,5 +232,50 @@ mod tests {
         let raw = b"From: a@x.com\r\nSubject: Hi\r\nContent-Type: text/plain\r\n\r\nSee https://example.com/a?b=1. Thanks";
         let m = full(1, raw).unwrap();
         assert!(m.html.contains("<a href=\"https://example.com/a?b=1\">"), "{}", m.html);
+    }
+}
+
+#[cfg(test)]
+mod attachment_tests {
+    use super::*;
+
+    /// One message with a PDF, a non-ASCII file name (RFC 2231), an inline image used in the HTML,
+    /// a second image as a normal attachment, and a forwarded email.
+    const RAW: &str = concat!(
+        "From: A <a@x.com>\r\nTo: b@y.com\r\nSubject: files\r\nMIME-Version: 1.0\r\n",
+        "Content-Type: multipart/mixed; boundary=\"m\"\r\n\r\n",
+        "--m\r\nContent-Type: multipart/related; boundary=\"r\"\r\n\r\n",
+        "--r\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<p>See <img src=\"cid:logo@x\"></p>\r\n",
+        "--r\r\nContent-Type: image/png\r\nContent-ID: <logo@x>\r\nContent-Disposition: inline\r\nContent-Transfer-Encoding: base64\r\n\r\niVBORw0KGgo=\r\n",
+        "--r--\r\n",
+        "--m\r\nContent-Type: application/pdf; name=\"report.pdf\"\r\nContent-Disposition: attachment; filename=\"report.pdf\"\r\n",
+        "Content-Transfer-Encoding: base64\r\n\r\nJVBERi0xLjQK\r\n",
+        "--m\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Disposition: attachment; filename*=utf-8''%E0%AE%95%E0%AF%8B%E0%AE%AA%E0%AF%8D%E0%AE%AA%E0%AF%81.txt\r\n",
+        "Content-Transfer-Encoding: base64\r\n\r\naGVsbG8=\r\n",
+        "--m\r\nContent-Type: image/jpeg; name=\"photo.jpg\"\r\nContent-Disposition: attachment; filename=\"photo.jpg\"\r\n",
+        "Content-Transfer-Encoding: base64\r\n\r\n/9j/4AAQ\r\n",
+        "--m\r\nContent-Type: message/rfc822\r\nContent-Disposition: attachment; filename=\"forwarded.eml\"\r\n\r\n",
+        "From: c@z.com\r\nSubject: inner\r\n\r\ninner body\r\n",
+        "--m--\r\n"
+    );
+
+    #[test]
+    fn every_attachment_is_listed_and_saved() {
+        let m = full(1, RAW.as_bytes()).unwrap();
+        let names: Vec<&str> = m.attachments.iter().map(|a| a.name.as_str()).collect();
+        assert!(names.contains(&"report.pdf"), "{names:?}");
+        assert!(names.contains(&"கோப்பு.txt"), "{names:?}");
+        assert!(names.contains(&"photo.jpg"), "{names:?}");
+        assert!(names.iter().any(|n| n.ends_with(".eml")), "{names:?}");
+        // The inline logo is shown in the message, not listed.
+        assert!(m.html.contains("data:image/png;base64,"), "{}", m.html);
+        assert_eq!(m.attachments.len(), 4, "{names:?}");
+        for a in &m.attachments {
+            let (name, bytes) = attachment(RAW.as_bytes(), a.index).unwrap();
+            assert_eq!(name, a.name);
+            assert!(!bytes.is_empty(), "{name} is empty");
+        }
+        let (_, pdf) = attachment(RAW.as_bytes(), m.attachments.iter().find(|a| a.name == "report.pdf").unwrap().index).unwrap();
+        assert!(pdf.starts_with(b"%PDF"));
     }
 }

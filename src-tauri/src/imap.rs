@@ -61,7 +61,7 @@ pub async fn check(acc: &Account, password: &str) -> Result<()> {
     Ok(())
 }
 
-fn pop(id: &str) -> Result<Option<Account>> {
+pub(crate) fn pop(id: &str) -> Result<Option<Account>> {
     let acc = accounts::get(id)?;
     Ok((acc.protocol == Protocol::Pop3).then_some(acc))
 }
@@ -70,7 +70,7 @@ const POP_ONLY_INBOX: &str = "POP3 accounts have only the inbox - switch the acc
 
 impl Pool {
     /// Takes the account's open session (if still alive) or opens a new one.
-    async fn take(&self, id: &str) -> Result<Session> {
+    pub(crate) async fn take(&self, id: &str) -> Result<Session> {
         let cached = self.sessions.lock().await.remove(id);
         if let Some(mut s) = cached {
             if s.noop().await.is_ok() {
@@ -81,7 +81,7 @@ impl Pool {
         connect(&acc, &accounts::password(id)?).await
     }
 
-    async fn give_back(&self, id: &str, s: Session) {
+    pub(crate) async fn give_back(&self, id: &str, s: Session) {
         self.sessions.lock().await.insert(id.to_string(), s);
     }
 
@@ -99,7 +99,14 @@ impl Pool {
         let mut out = list(&mut s).await?;
         // Like other mail apps, make sure Spam (Junk), Trash and Archive exist so those buttons work.
         let mut created = false;
-        for (role_name, folder) in [("junk", "Junk"), ("trash", "Trash"), ("archive", "Archive")] {
+        // Scheduled and Snoozed hold ToggleMail's send-later and snoozed mail, as in PhoneMail.
+        for (role_name, folder) in [
+            ("junk", "Junk"),
+            ("trash", "Trash"),
+            ("archive", "Archive"),
+            ("scheduled", "Scheduled"),
+            ("snoozed", "Snoozed"),
+        ] {
             if !out.iter().any(|f| f.role == role_name) && s.create(folder).await.is_ok() {
                 let _ = s.subscribe(folder).await;
                 created = true;
@@ -109,7 +116,13 @@ impl Pool {
             out = list(&mut s).await?;
         }
         self.give_back(id, s).await;
-        let order = |r: &str| ["inbox", "drafts", "sent", "archive", "junk", "trash"].iter().position(|x| *x == r).unwrap_or(9);
+        // PhoneMail's order; your own folders come after the standard ones.
+        let order = |r: &str| {
+            ["inbox", "snoozed", "drafts", "scheduled", "sent", "archive", "junk", "trash"]
+                .iter()
+                .position(|x| *x == r)
+                .unwrap_or(9)
+        };
         out.sort_by(|a, b| order(&a.role).cmp(&order(&b.role)).then(a.name.to_lowercase().cmp(&b.name.to_lowercase())));
         Ok(out)
     }
@@ -291,7 +304,7 @@ impl Pool {
     }
 }
 
-fn summarise(f: &Fetch) -> Option<Summary> {
+pub(crate) fn summarise(f: &Fetch) -> Option<Summary> {
     let flags: Vec<String> = f.flags().map(|fl| format!("{fl:?}")).map(flag_name).collect();
     Some(parse::summary(f.uid?, f.header().unwrap_or(b""), f.size.unwrap_or(0), &flags))
 }
@@ -300,7 +313,12 @@ fn summarise(f: &Fetch) -> Option<Summary> {
 fn flag_name(debug: String) -> String {
     match debug.as_str() {
         "Seen" | "Answered" | "Flagged" | "Deleted" | "Draft" | "Recent" => format!("\\{debug}"),
-        other => other.to_string(),
+        // Keywords such as $SnoozedUntil1731700000 come through as Custom("...").
+        other => other
+            .strip_prefix("Custom(\"")
+            .and_then(|s| s.strip_suffix("\")"))
+            .unwrap_or(other)
+            .to_string(),
     }
 }
 
@@ -325,6 +343,8 @@ fn role(name: &str, attrs: &[NameAttribute]) -> String {
         "trash" | "deleted" | "deleted items" | "deleted messages" | "bin" => "trash",
         "junk" | "spam" | "junk email" | "junk e-mail" | "bulk mail" => "junk",
         "archive" | "archives" | "all mail" => "archive",
+        "scheduled" => "scheduled",
+        "snoozed" => "snoozed",
         _ => "",
     }
     .into()

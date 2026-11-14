@@ -252,6 +252,17 @@ details summary { cursor: pointer; color: var(--accent); margin: 8px 0; }
 .menu.ctx button { display: block; width: 100%; text-align: left; border: none; background: transparent; padding: 6px 8px; }
 .menu.ctx button:hover { background: var(--hover); }
 .menu.ctx button.danger { color: var(--danger); }
+.menu.time { width: 250px; z-index: 40; }
+.menu.time input { margin: 4px 0 8px; }
+.menu.time #time-set { width: 100%; }
+#messages .when.sched { color: var(--accent); font-weight: 600; }
+.folder .ftools { display: none; gap: 2px; }
+.folder:hover .ftools { display: flex; }
+.folder .ftools button { border: none; background: transparent; color: var(--nav-text); padding: 0 4px; font-size: 13px; line-height: 1.4; }
+.folder .ftools button:hover { background: var(--nav-hover); }
+#app.nav-icons .folder .ftools { display: none; }
+.new-folder-row { color: var(--nav-muted); font-size: 13px; }
+.new-folder-row:hover { color: var(--nav-text); }
 .folder.drop { outline: 2px dashed var(--mint); outline-offset: -2px; }
 #messages li.dragging { opacity: .5; }
 

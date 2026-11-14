@@ -4,6 +4,7 @@ mod net;
 mod parse;
 mod password;
 mod pop3;
+mod schedule;
 mod smtp;
 
 use accounts::{Account, Protocol, Provider, Security, ServerSettings};
@@ -212,6 +213,53 @@ async fn delete_folder(pool: State<'_, Pool>, account: String, name: String) -> 
 }
 
 #[tauri::command]
+async fn schedule_send(pool: State<'_, Pool>, account: String, draft: smtp::Draft, send_at: i64) -> Res<()> {
+    schedule::schedule(&pool, &account, &draft, send_at).await.map_err(err)
+}
+
+/// Scheduled mail: send one now.
+#[tauri::command]
+async fn send_scheduled_now(pool: State<'_, Pool>, account: String, uid: u32) -> Res<()> {
+    schedule::send_due(&pool, &account, Some(uid)).await.map(|_| ()).map_err(err)
+}
+
+#[tauri::command]
+async fn snooze(pool: State<'_, Pool>, account: String, folder: String, uid: u32, until: i64) -> Res<()> {
+    schedule::snooze(&pool, &account, &folder, uid, until).await.map_err(err)
+}
+
+#[tauri::command]
+async fn unsnooze(pool: State<'_, Pool>, account: String, uid: u32) -> Res<()> {
+    schedule::wake_due(&pool, &account, Some(uid)).await.map(|_| ()).map_err(err)
+}
+
+#[derive(Serialize)]
+struct Due {
+    sent: u32,
+    woke: u32,
+}
+
+/// Run every minute by the window: sends scheduled mail and wakes snoozed mail that is due.
+#[tauri::command]
+async fn run_due(pool: State<'_, Pool>, account: String) -> Res<Due> {
+    let sent = schedule::send_due(&pool, &account, None).await.map_err(err)?;
+    let woke = schedule::wake_due(&pool, &account, None).await.map_err(err)?;
+    Ok(Due { sent, woke })
+}
+
+#[derive(Serialize)]
+struct Starred {
+    folder: String,
+    items: Vec<Summary>,
+}
+
+#[tauri::command]
+async fn starred(pool: State<'_, Pool>, account: String) -> Res<Starred> {
+    let (folder, items) = schedule::starred(&pool, &account).await.map_err(err)?;
+    Ok(Starred { folder, items })
+}
+
+#[tauri::command]
 fn password_plan(account: String) -> Res<password::Plan> {
     Ok(password::plan(&accounts::get(&account).map_err(err)?))
 }
@@ -273,7 +321,13 @@ pub fn run() {
             delete_folder,
             password_plan,
             change_password,
-            save_new_password
+            save_new_password,
+            schedule_send,
+            send_scheduled_now,
+            snooze,
+            unsnooze,
+            run_due,
+            starred
         ])
         .run(tauri::generate_context!())
         .expect("error while running ToggleMail");

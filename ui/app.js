@@ -138,10 +138,20 @@ function renderSidebar() {
     for (const f of folders || []) {
       const row = document.createElement('div');
       row.className = 'folder' + (f.role === '' && f.name.includes(f.delimiter) ? ' sub' : '');
-      if (a.id === state.account && f.name === state.folder) row.classList.add('active');
+      if (a.id === state.account && f.name === state.folder && !state.virtual) row.classList.add('active');
       const n = state.unread[`${a.id}|${f.name}`];
       row.title = label(f);
       row.innerHTML = `${folderIcon(f.role)}<span class="fname">${esc(label(f))}</span>${n ? `<span class="count">${n}</span>` : ''}`;
+      if (f.role === '') {
+        // Your own folders: rename and delete buttons show on hover.
+        const tools = document.createElement('span');
+        tools.className = 'ftools';
+        tools.innerHTML = '<button type="button" title="Rename folder">✎</button><button type="button" title="Delete folder">🗑</button>';
+        const [ren, del] = tools.querySelectorAll('button');
+        ren.onclick = (e) => { e.stopPropagation(); openFolderDialog(a.id, f); };
+        del.onclick = (e) => { e.stopPropagation(); deleteFolder(a.id, f, null); };
+        row.append(tools);
+      }
       row.onclick = () => selectFolder(a.id, f.name);
       row.oncontextmenu = (e) => folderMenu(e, a.id, f);
       // Drop a message here to move it.
@@ -154,24 +164,48 @@ function renderSidebar() {
         if (uid) moveUid(uid, f.name);
       };
       box.append(row);
+      if (f.role === 'inbox') {
+        // Starred: flagged mail in the inbox (a view, not a server folder), as in PhoneMail.
+        const star = document.createElement('div');
+        star.className = 'folder' + (a.id === state.account && state.virtual === 'starred' ? ' active' : '');
+        star.title = 'Starred';
+        star.innerHTML = `<svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2L3 9.6l6.2-.9Z"/></svg><span class="fname">Starred</span>`;
+        star.onclick = () => selectFolder(a.id, STARRED);
+        box.append(star);
+      }
+    }
+    if (folders && !folders.error && a.protocol !== 'pop3') {
+      const add = document.createElement('div');
+      add.className = 'folder new-folder-row';
+      add.title = 'New folder';
+      add.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="fname">New folder</span>';
+      add.onclick = () => openFolderDialog(a.id);
+      box.append(add);
     }
     nav.append(box);
   }
 }
 
 // ---------- message list ----------
+const STARRED = '\u0000starred';
+
 async function selectFolder(id, folder) {
   state.account = id;
-  state.folder = folder;
+  state.virtual = folder === STARRED ? 'starred' : null;
+  // Starred messages live in the inbox, so actions on them use the inbox.
+  state.folder = state.virtual ? folderOf(id, 'inbox')?.name || 'INBOX' : folder;
   state.searching = false;
   $('#search').value = '';
   closeReader();
   renderSidebar();
   const acct = state.accounts.find((a) => a.id === id);
-  $('#list-title').textContent = `${label((state.folders[id] || []).find((f) => f.name === folder) || { name: folder, role: '', delimiter: '/' })} · ${acct?.email ?? ''}`;
+  const title = state.virtual ? 'Starred' : label((state.folders[id] || []).find((f) => f.name === folder) || { name: folder, role: '', delimiter: '/' });
+  $('#list-title').textContent = `${title} · ${acct?.email ?? ''}`;
   await loadMessages(true);
   renderMoveMenu();
 }
+
+const currentRole = () => (state.virtual ? state.virtual : (state.folders[state.account] || []).find((f) => f.name === state.folder)?.role || '');
 
 async function loadMessages(reset) {
   const list = $('#messages');
@@ -180,6 +214,12 @@ async function loadMessages(reset) {
     list.innerHTML = '<li class="placeholder">Loading…</li>';
   }
   try {
+    if (state.virtual === 'starred') {
+      const r = await invoke('starred', { account: state.account });
+      state.items = r.items;
+      state.total = r.items.length;
+      return renderList();
+    }
     const page = await invoke('messages', { account: state.account, folder: state.folder, before: state.items.length, limit: PAGE });
     state.total = page.total;
     state.items = reset ? page.items : state.items.concat(page.items);
@@ -199,8 +239,15 @@ function renderList() {
     li.dataset.uid = m.uid;
     if (!m.seen) li.classList.add('unread');
     if (state.open?.uid === m.uid) li.classList.add('active');
-    const name = sentLike ? 'To: ' + (m.to.map(who).join(', ') || '—') : who(m.from);
-    li.innerHTML = `<div class="top"><span class="who">${esc(name)}</span>${m.flagged ? '<span class="flag">★</span>' : ''}<span class="when">${when(m.date)}</span></div>
+    const role = currentRole();
+    const name = sentLike || role === 'scheduled' ? 'To: ' + (m.to.map(who).join(', ') || '—') : who(m.from);
+    // Scheduled shows when it will go out; Snoozed shows when it comes back.
+    const whenHtml = role === 'scheduled' && m.send_at
+      ? `<span class="when sched" title="Sends ${esc(fullDate(m.send_at))}">⏰ ${when(m.send_at)}</span>`
+      : role === 'snoozed' && m.snoozed_until
+        ? `<span class="when sched" title="Back ${esc(fullDate(m.snoozed_until))}">⏰ ${when(m.snoozed_until)}</span>`
+        : `<span class="when">${when(m.date)}</span>`;
+    li.innerHTML = `<div class="top"><span class="who">${esc(name)}</span>${m.flagged ? '<span class="flag">★</span>' : ''}${whenHtml}</div>
       <div class="subj">${m.answered ? '↩ ' : ''}${esc(m.subject)}</div>`;
     li.onclick = () => openMessage(m.uid);
     li.draggable = true;
@@ -256,6 +303,15 @@ function renderReader() {
   $('#reader-msg [data-act=unread]').textContent = item && !item.seen ? 'Mark read' : 'Mark unread';
   const inJunk = folderOf(state.account, 'junk')?.name === state.folder;
   $('#reader-msg [data-act=junk]').textContent = inJunk ? 'Not spam' : 'Spam';
+  const role = currentRole();
+  const pop = state.accounts.find((a) => a.id === state.account)?.protocol === 'pop3';
+  $('#reader-msg [data-act=snooze]').hidden = pop || role === 'snoozed' || role === 'scheduled';
+  $('#reader-msg [data-act=unsnooze]').hidden = role !== 'snoozed';
+  $('#reader-msg [data-act=sendnow]').hidden = role !== 'scheduled';
+  $('#reader-msg [data-act=unschedule]').hidden = role !== 'scheduled';
+  if (role === 'scheduled' && item?.send_at) $('#r-date').textContent = `Will be sent ${fullDate(item.send_at)}`;
+  if (role === 'snoozed' && item?.snoozed_until) $('#r-date').textContent = `Snoozed until ${fullDate(item.snoozed_until)}`;
+  if (trustsImages(m.from.email)) state.showImages = true;
   $('#remote-banner').hidden = !m.has_remote_images || state.showImages;
 
   const ul = $('#r-attachments');
@@ -272,6 +328,25 @@ function renderReader() {
       } catch (e) { toast(String(e)); }
     };
     li.append(b);
+    ul.append(li);
+  }
+  if (m.attachments.length > 1) {
+    const li = document.createElement('li');
+    const all = document.createElement('button');
+    all.textContent = `⬇ Save all ${m.attachments.length}`;
+    all.onclick = async () => {
+      let saved = 0;
+      let last = '';
+      for (const a of m.attachments) {
+        try {
+          last = await invoke('save_attachment', { account: state.account, folder: state.folder, uid: m.uid, index: a.index });
+          saved++;
+        } catch (e) { toast(String(e)); }
+      }
+      toast(`Saved ${saved} file${saved === 1 ? '' : 's'} to Downloads`);
+      if (last) invoke('plugin:opener|reveal_item_in_dir', { path: last }).catch(() => {});
+    };
+    li.append(all);
     ul.append(li);
   }
 
@@ -365,6 +440,29 @@ async function act(action) {
         const f = folderOf(state.account, inJunk ? 'inbox' : 'junk');
         if (!f) return toast('This account has no Junk folder');
         return moveOpen(f.name);
+      }
+      case 'snooze':
+        return openTimeMenu($('#reader-msg [data-act=snooze]'), 'Snooze until', async (until) => {
+          try {
+            await invoke('snooze', { account: state.account, folder: state.folder, uid: m.uid, until });
+            toast(`Snoozed until ${fullDate(until)}`);
+            await loadFolders(state.account);
+            afterRemoval(m.uid);
+          } catch (e) { toast(String(e)); }
+        });
+      case 'unsnooze':
+        await invoke('unsnooze', { account: state.account, uid: m.uid });
+        toast('Back in your inbox');
+        refreshUnread(state.account);
+        return afterRemoval(m.uid);
+      case 'sendnow':
+        await invoke('send_scheduled_now', { account: state.account, uid: m.uid });
+        toast('Sent');
+        return afterRemoval(m.uid);
+      case 'unschedule': {
+        const drafts = folderOf(state.account, 'drafts');
+        if (!drafts) return toast('This account has no Drafts folder');
+        return moveOpen(drafts.name);
       }
       case 'unread': {
         const seen = !(item?.seen ?? true);
@@ -485,8 +583,9 @@ function htmlToText(html) {
   return div.textContent.replace(/\n{3,}/g, '\n\n').trim();
 }
 
-async function send(ev) {
-  ev.preventDefault();
+/** Sends now, or with `sendAt` (unix seconds) puts it in Scheduled to go out then. */
+async function send(ev, sendAt = 0) {
+  ev?.preventDefault();
   const f = $('#compose-form');
   const btn = $('#send-btn');
   const html = `<div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px">${$('#editor').innerHTML}</div>`;
@@ -506,6 +605,13 @@ async function send(ev) {
   $('#compose-error').textContent = '';
   try {
     const sameAccount = f.account.value === state.account;
+    if (sendAt) {
+      await invoke('schedule_send', { account: f.account.value, draft, sendAt });
+      $('#compose-dlg').close();
+      toast(`Scheduled for ${fullDate(sendAt)}. Keep ToggleMail open on a computer that's on at that time.`, 7000);
+      loadFolders(f.account.value);
+      return;
+    }
     await invoke('send', {
       account: f.account.value,
       draft,
@@ -683,9 +789,17 @@ function wire() {
   $('#add-account-btn').onclick = () => openAccountForm();
   $('#refresh-btn').onclick = () => state.account && selectFolder(state.account, state.folder);
   $('#more-btn').onclick = () => loadMessages(false);
-  $('#show-images').onclick = () => { state.showImages = true; renderReader(); };
+  $('#show-images').onclick = () => {
+    const who = trustImages(state.open.from.email);
+    state.showImages = true;
+    renderReader();
+    if (who) toast(`Pictures from ${who} will always show`);
+  };
   $('#move-to').onchange = (e) => { if (e.target.value) moveOpen(e.target.value); e.target.value = ''; };
-  document.querySelectorAll('#reader-msg [data-act]').forEach((b) => (b.onclick = () => act(b.dataset.act)));
+  document.querySelectorAll('#reader-msg [data-act]').forEach((b) => (b.onclick = (e) => {
+    if (b.dataset.act === 'snooze') e.stopPropagation(); // keep the time menu open
+    act(b.dataset.act);
+  }));
 
   let timer;
   $('#search').oninput = (e) => {
@@ -772,6 +886,24 @@ function wire() {
 
   wireSettings();
   startPolling();
+
+  // Scheduled sending and snooze wake-ups: check every minute (and once shortly after start).
+  setTimeout(runDue, 15000);
+  setInterval(runDue, 60000);
+
+  $('#time-set').onclick = () => {
+    const v = $('#time-pick').value;
+    const t = v ? Math.floor(new Date(v).getTime() / 1000) : 0;
+    if (!t || t * 1000 <= Date.now()) return toast('Pick a time in the future');
+    $('#time-menu').hidden = true;
+    timeChosen?.(t);
+  };
+  $('#time-menu').onclick = (e) => e.stopPropagation();
+  document.addEventListener('click', () => ($('#time-menu').hidden = true));
+  $('#schedule-btn').onclick = (e) => {
+    e.stopPropagation();
+    openTimeMenu($('#schedule-btn'), 'Send at', (sendAt) => send(null, sendAt));
+  };
 }
 
 // ---------- new mail check (interval from Settings) ----------
@@ -792,6 +924,107 @@ function startPolling() {
   }, Math.max(1, +prefs.interval || 2) * 60000);
 }
 
+// ---------- pictures: remembered senders ----------
+// Our own domains always load pictures. Allowing a sender remembers its domain, except on
+// personal-mail services, where only that one address is remembered.
+const OUR_DOMAINS = ['phonemail.net', 'shankars.org', 'jaiaditya.org', 'knkoa.org', 'toggleminds.com'];
+const PERSONAL_MAIL = ['gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.in', 'yahoo.co.in', 'ymail.com', 'outlook.com', 'hotmail.com',
+  'live.com', 'msn.com', 'icloud.com', 'me.com', 'mac.com', 'aol.com', 'proton.me', 'protonmail.com', 'pm.me', 'zoho.com',
+  'zohomail.in', 'rediffmail.com', 'gmx.com', 'mail.com', 'tuta.com', 'tutanota.com'];
+let trusted = [];
+try { trusted = JSON.parse(localStorage.getItem('trustedImages') || '[]'); } catch { /* none */ }
+const domainOf = (email) => (email || '').toLowerCase().split('@').pop();
+
+function trustsImages(email) {
+  const e = (email || '').toLowerCase();
+  const d = domainOf(e);
+  return OUR_DOMAINS.some((x) => d === x || d.endsWith('.' + x)) || trusted.includes(e) || trusted.includes('@' + d);
+}
+
+/** Remembers the sender; returns what was remembered (for the message), or '' if nothing new. */
+function trustImages(email) {
+  const e = (email || '').toLowerCase();
+  if (!e.includes('@') || trustsImages(e)) return '';
+  const key = PERSONAL_MAIL.includes(domainOf(e)) ? e : '@' + domainOf(e);
+  trusted.push(key);
+  try { localStorage.setItem('trustedImages', JSON.stringify(trusted)); } catch { /* not saved */ }
+  return key.startsWith('@') ? key.slice(1) : key;
+}
+
+function renderTrusted() {
+  const ul = $('#trusted-list');
+  ul.innerHTML = trusted.length ? '' : '<li class="muted">None yet</li>';
+  trusted.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="grow">${esc(t.startsWith('@') ? 'Everyone at ' + t.slice(1) : t)}</span><button type="button">Remove</button>`;
+    li.querySelector('button').onclick = () => {
+      trusted.splice(i, 1);
+      try { localStorage.setItem('trustedImages', JSON.stringify(trusted)); } catch { /* not saved */ }
+      renderTrusted();
+    };
+    ul.append(li);
+  });
+}
+
+// ---------- time picker (snooze and schedule) ----------
+let timeChosen = null;
+function at(days, hour, minute = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  d.setHours(hour, minute, 0, 0);
+  return d;
+}
+function nextWeekday(day, hour) { // 0 = Sunday
+  const d = new Date();
+  const add = ((day - d.getDay() + 7) % 7) || 7;
+  return at(add, hour);
+}
+
+function openTimeMenu(anchor, title, onChoose) {
+  const now = new Date();
+  const later = new Date(now.getTime() + 3 * 3600 * 1000);
+  later.setMinutes(0, 0, 0);
+  const presets = [
+    ['Later today', later, later.getDate() === now.getDate()],
+    ['Tomorrow morning', at(1, 8), true],
+    ['Tomorrow afternoon', at(1, 13), true],
+    ['This weekend', nextWeekday(6, 9), now.getDay() !== 6 && now.getDay() !== 0],
+    ['Next week', nextWeekday(1, 8), true],
+  ].filter((p) => p[2]);
+  const box = $('#time-presets');
+  box.innerHTML = '';
+  for (const [text, d] of presets) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `${esc(text)} <span class="muted">${esc(d.toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`;
+    b.onclick = () => { $('#time-menu').hidden = true; onChoose(Math.floor(d.getTime() / 1000)); };
+    box.append(b);
+  }
+  $('#time-title').textContent = title;
+  const pick = new Date(at(1, 9).getTime() - new Date().getTimezoneOffset() * 60000);
+  $('#time-pick').value = pick.toISOString().slice(0, 16);
+  timeChosen = onChoose;
+  const m = $('#time-menu');
+  const r = anchor.getBoundingClientRect();
+  m.hidden = false;
+  m.style.left = `${Math.min(r.left, innerWidth - m.offsetWidth - 8)}px`;
+  m.style.top = `${Math.min(r.bottom + 6, innerHeight - m.offsetHeight - 8)}px`;
+}
+
+// ---------- scheduled and snoozed mail ----------
+async function runDue() {
+  for (const a of state.accounts) {
+    if (a.protocol === 'pop3') continue;
+    try {
+      const r = await invoke('run_due', { account: a.id });
+      if (r.sent) toast(`${r.sent} scheduled email${r.sent > 1 ? 's' : ''} sent from ${a.email}`);
+      if (r.woke) toast(`${r.woke} snoozed email${r.woke > 1 ? 's are' : ' is'} back in your inbox`);
+      if ((r.sent || r.woke) && a.id === state.account && !state.open) loadMessages(true);
+      if (r.woke) refreshUnread(a.id);
+    } catch { /* offline: try again next minute */ }
+  }
+}
+
 // ---------- settings ----------
 function showTab(name) {
   document.querySelectorAll('#settings-dlg .tabs [data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
@@ -803,6 +1036,7 @@ function showTab(name) {
 
 function openSettings(tab = 'general') {
   for (const sel of document.querySelectorAll('#settings-dlg [data-pref]')) sel.value = prefs[sel.dataset.pref];
+  renderTrusted();
   applyView();
   showTab(tab);
   $('#settings-dlg').showModal();
@@ -872,7 +1106,7 @@ async function deleteFolder(id, f, btn) {
   if (!btn && deleteFolder.armed !== `${id}|${f.name}`) {
     deleteFolder.armed = `${id}|${f.name}`;
     setTimeout(() => (deleteFolder.armed = null), 6000);
-    return toast(`Right-click and choose Delete folder again to delete "${label(f)}" and all its messages`, 6000);
+    return toast(`Click delete again to remove "${label(f)}" and all its messages`, 6000);
   }
   deleteFolder.armed = null;
   try {
