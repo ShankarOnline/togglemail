@@ -41,7 +41,7 @@ const fullDate = (ts) => (ts ? new Date(ts * 1000).toLocaleString() : '');
 const size = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
 const folderOf = (id, role) => (state.folders[id] || []).find((f) => f.role === role);
 const label = (f) => {
-  const names = { inbox: 'Inbox', sent: 'Sent', drafts: 'Drafts', trash: 'Trash', junk: 'Spam', archive: 'Archive' };
+  const names = { inbox: 'Inbox', sent: 'Sent', drafts: 'Drafts', trash: 'Trash', junk: 'Spam', archive: 'Archive', scheduled: 'Scheduled', snoozed: 'Snoozed' };
   if (names[f.role] && !f.name.includes(f.delimiter)) return names[f.role];
   return f.name.split(f.delimiter).pop();
 };
@@ -74,7 +74,9 @@ function applyView() {
 const ICONS = {
   inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6Z"/>',
   sent: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
-  drafts: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  drafts: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/><path d="m9 17 1-3 4.5-4.5 2 2L12 16Z"/>',
+  scheduled: '<circle cx="10" cy="12" r="7"/><path d="M10 8v4l2.5 1.5"/><path d="m17 5 4 0 0 4"/><path d="m21 5-4.5 4.5"/>',
+  snoozed: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6M19 3l3 3"/>',
   trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>',
   junk: '<path d="M12 2 2 20h20Z"/><path d="M12 9v5M12 17h.01"/>',
   archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
@@ -178,7 +180,7 @@ function renderSidebar() {
       const add = document.createElement('div');
       add.className = 'folder new-folder-row';
       add.title = 'New folder';
-      add.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="fname">New folder</span>';
+      add.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 10v6M9 13h6"/></svg><span class="fname">New folder</span>';
       add.onclick = () => openFolderDialog(a.id);
       box.append(add);
     }
