@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shankars Mail</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <button id="compose-btn" class="primary" disabled>✎ New mail</button>
+      <nav id="accounts"></nav>
+      <button id="add-account-btn" class="ghost">+ Add account</button>
+    </aside>
+
+    <section id="list-pane">
+      <header class="pane-head">
+        <input id="search" type="search" placeholder="Search this folder" autocomplete="off">
+        <button id="refresh-btn" class="icon" title="Refresh (F5)">⟳</button>
+      </header>
+      <div id="list-title"></div>
+      <ul id="messages"></ul>
+      <button id="more-btn" class="ghost" hidden>Load older messages</button>
+    </section>
+
+    <main id="reader">
+      <div id="reader-empty" class="empty">
+        <h2>Shankars Mail</h2>
+        <p>Add an account to get started. Works with shankars.org, jaiaditya.org, knkoa.org,
+          toggleminds.com, phonemail.net, Gmail, Outlook and any IMAP mail service.</p>
+      </div>
+      <article id="reader-msg" hidden>
+        <div class="toolbar">
+          <button data-act="reply">↩ Reply</button>
+          <button data-act="replyall">↩↩ Reply all</button>
+          <button data-act="forward">↪ Forward</button>
+          <span class="sep"></span>
+          <button data-act="archive" title="Archive">Archive</button>
+          <button data-act="junk" title="Move to Junk">Junk</button>
+          <button data-act="delete" title="Delete (Del)">Delete</button>
+          <button data-act="unread">Mark unread</button>
+          <button data-act="flag">☆ Flag</button>
+          <select id="move-to" title="Move to folder"><option value="">Move to…</option></select>
+        </div>
+        <h1 id="r-subject"></h1>
+        <div class="meta">
+          <div><strong id="r-from"></strong> <span id="r-from-email" class="muted"></span></div>
+          <div class="muted" id="r-to"></div>
+          <div class="muted" id="r-date"></div>
+        </div>
+        <div id="remote-banner" class="banner" hidden>
+          Pictures from the internet are blocked to protect your privacy.
+          <button id="show-images">Show pictures</button>
+        </div>
+        <ul id="r-attachments"></ul>
+        <iframe id="r-body" sandbox="allow-same-origin" title="Message"></iframe>
+      </article>
+    </main>
+  </div>
+
+  <!-- Account form -->
+  <dialog id="account-dlg">
+    <form id="account-form" method="dialog">
+      <h2 id="account-title">Add account</h2>
+      <label>Your name <input name="name" placeholder="Shankar Raj"></label>
+      <label>Email address <input name="email" type="email" required placeholder="you@shankars.org"></label>
+      <div class="row">
+        <label class="grow">Mail provider <select name="provider"><option value="">Automatic (from the address)</option></select></label>
+        <label class="port">Incoming
+          <select name="protocol"><option value="imap">IMAP</option><option value="pop3">POP3</option></select>
+        </label>
+      </div>
+      <label>Password <input name="password" type="password" autocomplete="off"></label>
+      <p id="provider-note" class="note"></p>
+      <details id="advanced">
+        <summary>Server settings</summary>
+        <label>User name <input name="username" placeholder="usually the full email address"></label>
+        <div class="row">
+          <label><span id="incoming-label">IMAP server</span> <input name="imap_host" required></label>
+          <label class="port">Port <input name="imap_port" type="number" value="993" required></label>
+          <label class="port">Security
+            <select name="incoming_security"><option value="tls">SSL/TLS</option><option value="starttls">STARTTLS</option></select>
+          </label>
+        </div>
+        <div class="row">
+          <label>SMTP server <input name="smtp_host" required></label>
+          <label class="port">Port <input name="smtp_port" type="number" value="587" required></label>
+          <label class="port">Security
+            <select name="smtp_security"><option value="starttls">STARTTLS</option><option value="tls">SSL/TLS</option></select>
+          </label>
+        </div>
+        <label class="check"><input name="accept_invalid_certs" type="checkbox">
+          Accept the server's own certificate (only for a bridge on this computer, such as Proton Mail Bridge)</label>
+        <label>Signature (HTML allowed) <textarea name="signature" rows="3"></textarea></label>
+      </details>
+      <p id="account-error" class="error"></p>
+      <div class="actions">
+        <button type="button" id="account-remove" class="danger" hidden>Remove account</button>
+        <span class="grow"></span>
+        <button type="button" id="account-cancel">Cancel</button>
+        <button type="submit" class="primary" id="account-save">Sign in</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Compose -->
+  <dialog id="compose-dlg">
+    <form id="compose-form" method="dialog">
+      <div class="row">
+        <label class="grow">From <select name="account"></select></label>
+      </div>
+      <label>To <input name="to" placeholder="name@example.com, another@example.com"></label>
+      <div class="row">
+        <label class="grow">Cc <input name="cc"></label>
+        <label class="grow">Bcc <input name="bcc"></label>
+      </div>
+      <label>Subject <input name="subject"></label>
+      <div class="editor-bar">
+        <button type="button" data-cmd="bold"><b>B</b></button>
+        <button type="button" data-cmd="italic"><i>I</i></button>
+        <button type="button" data-cmd="underline"><u>U</u></button>
+        <button type="button" data-cmd="insertUnorderedList">• List</button>
+        <button type="button" data-cmd="insertOrderedList">1. List</button>
+        <button type="button" data-cmd="createLink">Link</button>
+        <button type="button" data-cmd="removeFormat">Clear</button>
+        <span class="grow"></span>
+        <label class="attach">📎 Attach<input id="attach-input" type="file" multiple hidden></label>
+      </div>
+      <div id="link-box" class="row" hidden>
+        <input id="link-url" type="url" placeholder="https://">
+        <button type="button" id="link-add">Add link</button>
+      </div>
+      <div id="editor" contenteditable="true"></div>
+      <ul id="compose-files"></ul>
+      <p id="compose-error" class="error"></p>
+      <div class="actions">
+        <button type="button" id="compose-cancel">Discard</button>
+        <span class="grow"></span>
+        <button type="submit" class="primary" id="send-btn">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
