@@ -96,16 +96,18 @@ impl Pool {
             return Ok(vec![Folder { name: "INBOX".into(), role: "inbox".into(), delimiter: "/".into() }]);
         }
         let mut s = self.take(id).await?;
-        let names: Vec<_> = s.list(Some(""), Some("*")).await?.try_collect().await?;
-        let mut out: Vec<Folder> = names
-            .iter()
-            .filter(|n| !n.attributes().iter().any(|a| matches!(a, NameAttribute::NoSelect)))
-            .map(|n| Folder {
-                name: n.name().to_string(),
-                role: role(n.name(), n.attributes()),
-                delimiter: n.delimiter().unwrap_or("/").to_string(),
-            })
-            .collect();
+        let mut out = list(&mut s).await?;
+        // Like other mail apps, make sure Spam (Junk), Trash and Archive exist so those buttons work.
+        let mut created = false;
+        for (role_name, folder) in [("junk", "Junk"), ("trash", "Trash"), ("archive", "Archive")] {
+            if !out.iter().any(|f| f.role == role_name) && s.create(folder).await.is_ok() {
+                let _ = s.subscribe(folder).await;
+                created = true;
+            }
+        }
+        if created {
+            out = list(&mut s).await?;
+        }
         self.give_back(id, s).await;
         let order = |r: &str| ["inbox", "drafts", "sent", "archive", "junk", "trash"].iter().position(|x| *x == r).unwrap_or(9);
         out.sort_by(|a, b| order(&a.role).cmp(&order(&b.role)).then(a.name.to_lowercase().cmp(&b.name.to_lowercase())));
@@ -237,6 +239,58 @@ impl Pool {
     }
 }
 
+async fn list(s: &mut Session) -> Result<Vec<Folder>> {
+    let names: Vec<_> = s.list(Some(""), Some("*")).await?.try_collect().await?;
+    Ok(names
+        .iter()
+        .filter(|n| !n.attributes().iter().any(|a| matches!(a, NameAttribute::NoSelect)))
+        .map(|n| Folder {
+            name: n.name().to_string(),
+            role: role(n.name(), n.attributes()),
+            delimiter: n.delimiter().unwrap_or("/").to_string(),
+        })
+        .collect())
+}
+
+impl Pool {
+    pub async fn create_folder(&self, id: &str, name: &str) -> Result<()> {
+        if pop(id)?.is_some() {
+            return Err(anyhow!(POP_ONLY_INBOX));
+        }
+        let mut s = self.take(id).await?;
+        s.create(name).await.context("the server would not create that folder")?;
+        let _ = s.subscribe(name).await;
+        self.give_back(id, s).await;
+        Ok(())
+    }
+
+    pub async fn rename_folder(&self, id: &str, from: &str, to: &str) -> Result<()> {
+        if pop(id)?.is_some() {
+            return Err(anyhow!(POP_ONLY_INBOX));
+        }
+        let mut s = self.take(id).await?;
+        s.rename(from, to).await.context("the server would not rename that folder")?;
+        let _ = s.unsubscribe(from).await;
+        let _ = s.subscribe(to).await;
+        self.give_back(id, s).await;
+        Ok(())
+    }
+
+    /// Deletes a folder and everything in it.
+    pub async fn delete_folder(&self, id: &str, name: &str) -> Result<()> {
+        if pop(id)?.is_some() {
+            return Err(anyhow!(POP_ONLY_INBOX));
+        }
+        let mut s = self.take(id).await?;
+        // Leave the folder first: some servers refuse to delete the selected mailbox.
+        let _ = s.select("INBOX").await;
+        let _ = s.unsubscribe(name).await;
+        s.delete(name).await.context("the server would not delete that folder")?;
+        self.give_back(id, s).await;
+        Ok(())
+    }
+}
+
 fn summarise(f: &Fetch) -> Option<Summary> {
     let flags: Vec<String> = f.flags().map(|fl| format!("{fl:?}")).map(flag_name).collect();
     Some(parse::summary(f.uid?, f.header().unwrap_or(b""), f.size.unwrap_or(0), &flags))
@@ -269,7 +323,7 @@ fn role(name: &str, attrs: &[NameAttribute]) -> String {
         "sent" | "sent items" | "sent mail" | "sent messages" => "sent",
         "drafts" | "draft" => "drafts",
         "trash" | "deleted" | "deleted items" | "deleted messages" | "bin" => "trash",
-        "junk" | "spam" | "junk email" | "bulk mail" => "junk",
+        "junk" | "spam" | "junk email" | "junk e-mail" | "bulk mail" => "junk",
         "archive" | "archives" | "all mail" => "archive",
         _ => "",
     }

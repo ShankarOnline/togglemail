@@ -9,15 +9,49 @@
 <body>
   <div id="app">
     <aside id="sidebar">
-      <button id="compose-btn" class="primary" disabled>✎ New mail</button>
+      <div class="side-top">
+        <button id="nav-toggle" class="icon side-btn" title="Collapse or expand the navigation">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <span class="brand"><img src="logo.svg" alt="" width="22" height="22"><span class="txt">ToggleMail</span></span>
+      </div>
+      <button id="compose-btn" class="primary" disabled title="New mail (N)">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="txt">New mail</span>
+      </button>
       <nav id="accounts"></nav>
-      <button id="add-account-btn" class="ghost">+ Add account</button>
+      <button id="add-account-btn" class="ghost" title="Add account">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="txt">Add account</span>
+      </button>
+      <span class="grow"></span>
+      <button id="settings-btn" class="ghost side-link" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+        <span class="txt">Settings</span>
+      </button>
     </aside>
 
     <section id="list-pane">
       <header class="pane-head">
         <input id="search" type="search" placeholder="Search this folder" autocomplete="off">
         <button id="refresh-btn" class="icon" title="Refresh (F5)">⟳</button>
+        <div class="view-wrap">
+          <button id="view-btn" class="icon" title="View options">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></svg>
+          </button>
+          <div id="view-menu" class="menu" hidden>
+            <div class="menu-title">Reading pane</div>
+            <label><input type="radio" name="pane" value="right"> Right (3 columns)</label>
+            <label><input type="radio" name="pane" value="bottom"> Bottom</label>
+            <label><input type="radio" name="pane" value="off"> Off (2 columns)</label>
+            <div class="menu-title">Navigation</div>
+            <label><input type="radio" name="nav" value="full"> Full</label>
+            <label><input type="radio" name="nav" value="icons"> Icons only</label>
+            <div class="menu-title">Colours</div>
+            <label><input type="radio" name="tint" value="color"> Coloured columns</label>
+            <label><input type="radio" name="tint" value="plain"> Plain</label>
+          </div>
+        </div>
       </header>
       <div id="list-title"></div>
       <ul id="messages"></ul>
@@ -32,6 +66,7 @@
       </div>
       <article id="reader-msg" hidden>
         <div class="toolbar">
+          <button id="back-btn" title="Back to the list (Esc)">← Back</button>
           <button data-act="reply">↩ Reply</button>
           <button data-act="replyall">↩↩ Reply all</button>
           <button data-act="forward">↪ Forward</button>
@@ -142,6 +177,113 @@
     </form>
   </dialog>
 
+  <!-- Settings -->
+  <dialog id="settings-dlg">
+    <div class="settings">
+      <nav class="tabs">
+        <h2>Settings</h2>
+        <button type="button" data-tab="general" class="active">General</button>
+        <button type="button" data-tab="accounts">Accounts</button>
+        <button type="button" data-tab="folders">Folders</button>
+        <button type="button" data-tab="about">About</button>
+      </nav>
+      <div class="tab-body">
+        <section data-panel="general">
+          <h3>Layout</h3>
+          <label>Reading pane
+            <select data-view="pane"><option value="right">Right (3 columns)</option><option value="bottom">Bottom</option><option value="off">Off (2 columns)</option></select>
+          </label>
+          <label>Navigation
+            <select data-view="nav"><option value="full">Full</option><option value="icons">Icons only</option></select>
+          </label>
+          <label>Colours
+            <select data-view="tint"><option value="color">Coloured columns</option><option value="plain">Plain</option></select>
+          </label>
+          <h3>Reading</h3>
+          <label>Mark messages as read
+            <select data-pref="markRead"><option value="open">When I open them</option><option value="never">Only when I choose</option></select>
+          </label>
+          <label>Pictures from the internet
+            <select data-pref="images"><option value="ask">Ask for each message</option><option value="always">Always show</option></select>
+          </label>
+          <label>Ask before deleting
+            <select data-pref="confirmDelete"><option value="no">No</option><option value="yes">Yes</option></select>
+          </label>
+          <h3>New mail</h3>
+          <label>Check for new mail every
+            <select data-pref="interval"><option value="1">1 minute</option><option value="2">2 minutes</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="30">30 minutes</option></select>
+          </label>
+        </section>
+        <section data-panel="accounts" hidden>
+          <ul id="settings-accounts" class="rows"></ul>
+          <button type="button" id="settings-add-account" class="primary">+ Add account</button>
+        </section>
+        <section data-panel="folders" hidden>
+          <label>Account <select id="folders-account"></select></label>
+          <ul id="settings-folders" class="rows"></ul>
+          <div class="row new-folder">
+            <input id="new-folder-name" placeholder="New folder name">
+            <button type="button" id="new-folder-btn" class="primary">Create folder</button>
+          </div>
+          <p class="note">Inbox, Drafts, Sent, Archive, Spam and Trash are standard folders and can't be renamed or deleted here.
+            Drag a message onto any folder in the sidebar to move it.</p>
+        </section>
+        <section data-panel="about" hidden>
+          <div class="about">
+            <img src="logo.svg" alt="" width="64" height="64">
+            <div>
+              <h3>ToggleMail <span class="muted">0.1.0</span></h3>
+              <p>Email for any IMAP, POP3 or SMTP account. A free family project by Toggle Minds.</p>
+              <p><a href="https://toggleminds.com/" data-external>toggleminds.com</a></p>
+            </div>
+          </div>
+        </section>
+        <p id="settings-error" class="error"></p>
+        <div class="actions"><span class="grow"></span><button type="button" id="settings-close" class="primary">Done</button></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Change password -->
+  <dialog id="password-dlg">
+    <form id="password-form" method="dialog">
+      <h2>Change password</h2>
+      <p class="note" id="pw-account"></p>
+      <div id="pw-in-app">
+        <label>Current password <input name="current" type="password" autocomplete="current-password"></label>
+        <label>New password (at least 10 characters) <input name="new1" type="password" autocomplete="new-password"></label>
+        <label>New password again <input name="new2" type="password" autocomplete="new-password"></label>
+      </div>
+      <div id="pw-external">
+        <p id="pw-external-text"></p>
+        <button type="button" id="pw-open-page">Open the password page</button>
+        <label>Then enter the new password here so ToggleMail keeps working
+          <input name="saved" type="password" autocomplete="new-password"></label>
+      </div>
+      <p id="password-error" class="error"></p>
+      <div class="actions">
+        <span class="grow"></span>
+        <button type="button" id="password-cancel">Cancel</button>
+        <button type="submit" class="primary" id="password-save">Change password</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Folder name (new / rename) -->
+  <dialog id="folder-dlg">
+    <form id="folder-form" method="dialog">
+      <h2 id="folder-title">New folder</h2>
+      <label>Folder name <input name="name" required></label>
+      <p id="folder-error" class="error"></p>
+      <div class="actions">
+        <span class="grow"></span>
+        <button type="button" id="folder-cancel">Cancel</button>
+        <button type="submit" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="ctx-menu" class="menu ctx" hidden></div>
   <div id="toast" hidden></div>
   <script src="app.js"></script>
 </body>

@@ -2,6 +2,7 @@ mod accounts;
 mod imap;
 mod net;
 mod parse;
+mod password;
 mod pop3;
 mod smtp;
 
@@ -111,8 +112,8 @@ async fn search(pool: State<'_, Pool>, account: String, folder: String, query: S
 }
 
 #[tauri::command]
-async fn open_message(pool: State<'_, Pool>, account: String, folder: String, uid: u32) -> Res<Full> {
-    let raw = pool.raw(&account, &folder, uid, true).await.map_err(err)?;
+async fn open_message(pool: State<'_, Pool>, account: String, folder: String, uid: u32, mark_read: Option<bool>) -> Res<Full> {
+    let raw = pool.raw(&account, &folder, uid, mark_read.unwrap_or(true)).await.map_err(err)?;
     parse::full(uid, &raw).ok_or_else(|| "could not read this message".to_string())
 }
 
@@ -188,6 +189,53 @@ async fn send(pool: State<'_, Pool>, account: String, draft: smtp::Draft, reply_
 }
 
 #[tauri::command]
+async fn create_folder(pool: State<'_, Pool>, account: String, name: String) -> Res<()> {
+    let name = name.trim();
+    if name.is_empty() {
+        return Err("enter a folder name".into());
+    }
+    pool.create_folder(&account, name).await.map_err(err)
+}
+
+#[tauri::command]
+async fn rename_folder(pool: State<'_, Pool>, account: String, from: String, to: String) -> Res<()> {
+    let to = to.trim();
+    if to.is_empty() {
+        return Err("enter a folder name".into());
+    }
+    pool.rename_folder(&account, &from, to).await.map_err(err)
+}
+
+#[tauri::command]
+async fn delete_folder(pool: State<'_, Pool>, account: String, name: String) -> Res<()> {
+    pool.delete_folder(&account, &name).await.map_err(err)
+}
+
+#[tauri::command]
+fn password_plan(account: String) -> Res<password::Plan> {
+    Ok(password::plan(&accounts::get(&account).map_err(err)?))
+}
+
+/// Our own domains: changes the password on the server and saves it here.
+#[tauri::command]
+async fn change_password(pool: State<'_, Pool>, account: String, current: String, new: String) -> Res<()> {
+    let acc = accounts::get(&account).map_err(err)?;
+    password::change_ours(&acc, &current, &new).await.map_err(err)?;
+    pool.forget(&account).await;
+    Ok(())
+}
+
+/// Other providers: after changing it on their website, check the new password and save it.
+#[tauri::command]
+async fn save_new_password(pool: State<'_, Pool>, account: String, password: String) -> Res<()> {
+    let acc = accounts::get(&account).map_err(err)?;
+    imap::check(&acc, &password).await.map_err(err)?;
+    accounts::upsert(acc, &password).map_err(err)?;
+    pool.forget(&account).await;
+    Ok(())
+}
+
+#[tauri::command]
 async fn unread(pool: State<'_, Pool>, account: String, folder: String) -> Res<u32> {
     pool.unread_count(&account, &folder).await.map_err(err)
 }
@@ -219,7 +267,13 @@ pub fn run() {
             delete_message,
             save_attachment,
             send,
-            unread
+            unread,
+            create_folder,
+            rename_folder,
+            delete_folder,
+            password_plan,
+            change_password,
+            save_new_password
         ])
         .run(tauri::generate_context!())
         .expect("error while running ToggleMail");
