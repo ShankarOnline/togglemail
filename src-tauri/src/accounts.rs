@@ -243,7 +243,8 @@ pub fn load() -> Result<Vec<Account>> {
         return Ok(vec![]);
     }
     let text = std::fs::read_to_string(&path)?;
-    serde_json::from_str(&text).context("accounts.json is not valid")
+    // Windows editors may add a byte-order mark when the file is edited by hand.
+    serde_json::from_str(text.trim_start_matches('\u{feff}')).context("accounts.json is not valid")
 }
 
 fn save_all(accounts: &[Account]) -> Result<()> {
