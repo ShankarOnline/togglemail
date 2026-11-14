@@ -1,15 +1,18 @@
-# Shankars Mail
+﻿# ToggleMail
 
 A desktop email app for **Windows, macOS and Linux**, written in Rust with [Tauri 2](https://tauri.app).
-It works with any IMAP/SMTP mail service. Settings are filled in automatically for:
+It works with any IMAP, POP3 and SMTP mail service - a free family project by Toggle Minds. Settings are filled in automatically for:
 
 | Addresses | Servers |
 |---|---|
 | shankars.org, jaiaditya.org, knkoa.org, toggleminds.com, phonemail.net | `mail.jaiaditya.org` IMAP 993 (TLS), SMTP 587 (STARTTLS) |
 | Gmail | `imap.gmail.com` / `smtp.gmail.com` (needs an app password) |
-| Outlook.com / Hotmail | `outlook.office365.com` / `smtp-mail.outlook.com` |
-| Yahoo, iCloud, Zoho | their standard servers (app passwords where required) |
-| anything else | guesses `mail.<domain>`; edit under *Server settings* |
+| Outlook.com / Hotmail | `outlook.office365.com` / `smtp.office365.com` |
+| Yahoo, iCloud, Zoho, StartMail, Mailfence, mailbox.org, Runbox, Posteo, Kolab Now, Soverin | their standard servers (app passwords where required) |
+| Proton Mail | through Proton Mail Bridge on the same computer |
+| Hostinger, Rackspace, Neo, ChemiCloud, SeekaHost, BigRock | hosting for your own domain |
+| Tuta | not possible: Tuta offers no IMAP, POP3 or SMTP |
+| anything else | IMAP or POP3, SSL/TLS or STARTTLS, any host and port under *Server settings* |
 
 ## What it does
 
@@ -28,10 +31,10 @@ It works with any IMAP/SMTP mail service. Settings are filled in automatically f
 ## Where things are kept
 
 - Account settings: `accounts.json` in the config folder
-  (`%APPDATA%\shankars-mail`, `~/Library/Application Support/shankars-mail`, `~/.config/shankars-mail`)
+  (`%APPDATA%\togglemail`, `~/Library/Application Support/togglemail`, `~/.config/togglemail`)
 - Passwords: the system keychain (Windows Credential Manager, macOS Keychain, Linux Secret Service /
   GNOME Keyring / KWallet). On Linux desktops without a keychain service the password is kept in
-  `~/.config/shankars-mail/secrets/` with owner-only permissions.
+  `~/.config/togglemail/secrets/` with owner-only permissions.
 - Mail itself stays on the server; nothing is cached on disk.
 
 ## Installers
@@ -40,8 +43,8 @@ It works with any IMAP/SMTP mail service. Settings are filled in automatically f
 |---|---|
 | Windows 10/11 | `.msi` or `-setup.exe` |
 | macOS (Apple silicon and Intel) | `.dmg` |
-| Ubuntu, Pop!_OS (incl. COSMIC), Debian, Mint | `.deb` — `sudo apt install ./Shankars.Mail_*.deb` |
-| Fedora, openSUSE, RHEL | `.rpm` — `sudo dnf install ./Shankars.Mail-*.rpm` |
+| Ubuntu, Pop!_OS (incl. COSMIC), Debian, Mint | `.deb` — `sudo apt install ./ToggleMail_*.deb` |
+| Fedora, openSUSE, RHEL | `.rpm` — `sudo dnf install ./ToggleMail-*.rpm` |
 | Any other Linux | `.AppImage` — `chmod +x` and run |
 
 GitHub Actions (`.github/workflows/build.yml`) builds all of them on every push; a `v*` tag

@@ -48,7 +48,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          releaseName: 'Shankars Mail ${{ github.ref_name }}'
+          releaseName: 'ToggleMail ${{ github.ref_name }}'
           releaseDraft: true
           args: ${{ matrix.args }}
 
@@ -62,4 +62,32 @@ jobs:
             src-tauri/target/**/release/bundle/deb/*.deb
             src-tauri/target/**/release/bundle/rpm/*.rpm
             src-tauri/target/**/release/bundle/appimage/*.AppImage
+          if-no-files-found: ignore
+
+  # FreeBSD has no Tauri installer format: this builds the program in a FreeBSD VM and packs it
+  # as a .tar.gz (needs: pkg install webkit2-gtk_41 gtk3 librsvg2-rust dbus gnome-keyring).
+  freebsd:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          release: '14.3'
+          usesh: true
+          mem: 8192
+          prepare: |
+            pkg install -y rust pkgconf webkit2-gtk_41 gtk3 librsvg2-rust dbus libsoup3 gettext-runtime
+          run: |
+            cd src-tauri
+            cargo build --release
+            mkdir -p ../dist/ToggleMail
+            cp target/release/togglemail ../dist/ToggleMail/
+            cp icons/128x128.png ../dist/ToggleMail/togglemail.png
+            printf '[Desktop Entry]\nName=ToggleMail\nExec=togglemail\nIcon=togglemail\nType=Application\nCategories=Network;Email;\n' > ../dist/ToggleMail/togglemail.desktop
+            cd ../dist && tar czf ToggleMail-freebsd-amd64.tar.gz ToggleMail
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-freebsd
+          path: dist/ToggleMail-freebsd-amd64.tar.gz
           if-no-files-found: ignore

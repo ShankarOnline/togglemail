@@ -3856,29 +3856,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shankars-mail"
-version = "0.1.0"
-dependencies = [
- "ammonia",
- "anyhow",
- "async-imap",
- "base64 0.22.1",
- "dirs 6.0.0",
- "futures",
- "keyring",
- "lettre",
- "mail-parser",
- "native-tls",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tokio",
- "tokio-native-tls",
-]
-
-[[package]]
 name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4558,6 +4535,29 @@ name = "tinyvec"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
+
+[[package]]
+name = "togglemail"
+version = "0.1.0"
+dependencies = [
+ "ammonia",
+ "anyhow",
+ "async-imap",
+ "base64 0.22.1",
+ "dirs 6.0.0",
+ "futures",
+ "keyring",
+ "lettre",
+ "mail-parser",
+ "native-tls",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tokio",
+ "tokio-native-tls",
+]
 
 [[package]]
 name = "tokio"

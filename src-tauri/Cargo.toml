@@ -1,12 +1,12 @@
 [package]
-name = "shankars-mail"
+name = "togglemail"
 version = "0.1.0"
-description = "Shankars Mail - a desktop email client for any IMAP/SMTP service"
+description = "ToggleMail - a desktop email app for any IMAP, POP3 and SMTP service"
 authors = ["Shankar Raj"]
 edition = "2021"
 
 [lib]
-name = "shankars_mail_lib"
+name = "togglemail_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

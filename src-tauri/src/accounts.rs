@@ -5,7 +5,10 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-const KEYRING_SERVICE: &str = "Shankars Mail";
+const KEYRING_SERVICE: &str = "ToggleMail";
+/// The app's first name; settings and passwords saved under it are moved over on first use.
+const OLD_KEYRING_SERVICE: &str = "Shankars Mail";
+const OLD_DIR: &str = "shankars-mail";
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
@@ -213,7 +216,12 @@ pub fn settings_for(email: &str, provider_id: &str, protocol: Protocol) -> Serve
 }
 
 fn data_dir() -> Result<PathBuf> {
-    let dir = dirs::config_dir().ok_or_else(|| anyhow!("no config folder"))?.join("shankars-mail");
+    let base = dirs::config_dir().ok_or_else(|| anyhow!("no config folder"))?;
+    let dir = base.join("togglemail");
+    let old = base.join(OLD_DIR);
+    if !dir.exists() && old.exists() {
+        let _ = std::fs::rename(&old, &dir);
+    }
     std::fs::create_dir_all(&dir)?;
     Ok(dir)
 }
@@ -250,9 +258,9 @@ pub fn get(id: &str) -> Result<Account> {
     load()?.into_iter().find(|a| a.id == id).ok_or_else(|| anyhow!("account not found"))
 }
 
-/// Linux desktops without a keychain service (some COSMIC and minimal setups) fall back to a file
+/// Linux and BSD desktops without a keychain service (some COSMIC and minimal setups) fall back to a file
 /// readable only by the user, in the app's config folder.
-#[cfg(target_os = "linux")]
+#[cfg(all(unix, not(target_os = "macos")))]
 fn fallback_file(id: &str) -> Result<PathBuf> {
     let dir = data_dir()?.join("secrets");
     std::fs::create_dir_all(&dir)?;
@@ -263,7 +271,7 @@ fn fallback_file(id: &str) -> Result<PathBuf> {
 
 fn store_password(id: &str, password: &str) -> Result<()> {
     let saved = keyring::Entry::new(KEYRING_SERVICE, id).and_then(|e| e.set_password(password));
-    #[cfg(target_os = "linux")]
+    #[cfg(all(unix, not(target_os = "macos")))]
     if saved.is_err() {
         use std::io::Write;
         use std::os::unix::fs::OpenOptionsExt;
@@ -299,7 +307,7 @@ pub fn remove(id: &str) -> Result<()> {
     if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, id) {
         let _ = entry.delete_credential();
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(all(unix, not(target_os = "macos")))]
     if let Ok(path) = fallback_file(id) {
         let _ = std::fs::remove_file(path);
     }
@@ -312,8 +320,19 @@ pub fn remove(id: &str) -> Result<()> {
 }
 
 pub fn password(id: &str) -> Result<String> {
-    let found = keyring::Entry::new(KEYRING_SERVICE, id).and_then(|e| e.get_password());
-    #[cfg(target_os = "linux")]
+    let mut found = keyring::Entry::new(KEYRING_SERVICE, id).and_then(|e| e.get_password());
+    if found.is_err() {
+        // Saved before the rename: move it to the new name.
+        if let Ok(old) = keyring::Entry::new(OLD_KEYRING_SERVICE, id) {
+            if let Ok(pw) = old.get_password() {
+                if store_password(id, &pw).is_ok() {
+                    let _ = old.delete_credential();
+                }
+                found = Ok(pw);
+            }
+        }
+    }
+    #[cfg(all(unix, not(target_os = "macos")))]
     if found.is_err() {
         if let Ok(pw) = std::fs::read_to_string(fallback_file(id)?) {
             return Ok(pw);

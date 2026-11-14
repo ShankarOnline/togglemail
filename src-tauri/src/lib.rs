@@ -194,9 +194,9 @@ async fn unread(pool: State<'_, Pool>, account: String, folder: String) -> Res<u
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Linux (Pop!_OS COSMIC, Ubuntu on Wayland): WebKitGTK's DMA-BUF renderer shows a blank
+    // Linux and BSD (Pop!_OS COSMIC, Ubuntu on Wayland, FreeBSD): WebKitGTK's DMA-BUF renderer shows a blank
     // window on some GPU drivers; the plain renderer works everywhere.
-    #[cfg(target_os = "linux")]
+    #[cfg(all(unix, not(target_os = "macos")))]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }
@@ -222,5 +222,5 @@ pub fn run() {
             unread
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Shankars Mail");
+        .expect("error while running ToggleMail");
 }

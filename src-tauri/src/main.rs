@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    shankars_mail_lib::run()
+    togglemail_lib::run()
 }

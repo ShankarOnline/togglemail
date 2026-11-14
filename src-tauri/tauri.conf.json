@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Shankars Mail",
+  "productName": "ToggleMail",
   "version": "0.1.0",
-  "identifier": "org.shankars.mail",
+  "identifier": "com.toggleminds.togglemail",
   "build": {
     "frontendDist": "../ui"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Shankars Mail",
+        "title": "ToggleMail",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -25,7 +25,7 @@
     "active": true,
     "targets": "all",
     "category": "Productivity",
-    "shortDescription": "Email for any IMAP/SMTP account",
+    "shortDescription": "Email for any IMAP, POP3 or SMTP account",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

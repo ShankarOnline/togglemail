@@ -2,7 +2,7 @@
 //! sanitised HTML body (scripts, forms and event handlers removed) for the reader.
 
 use base64::Engine;
-use mail_parser::{Address, MessageParser, MimeHeaders};
+use mail_parser::{Address, MessageParser, MimeHeaders, PartType};
 use serde::Serialize;
 use std::collections::HashSet;
 
@@ -88,10 +88,22 @@ fn escape(text: &str) -> String {
     text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
 }
 
+/// Plain-text mail: kept as written, with web addresses made clickable.
 fn text_to_html(text: &str) -> String {
+    let linked: Vec<String> = escape(text)
+        .split(' ')
+        .map(|word| {
+            let trimmed = word.trim_end_matches(['.', ',', ')', ';', ':']);
+            if (trimmed.starts_with("https://") || trimmed.starts_with("http://")) && !trimmed.contains('"') {
+                format!("<a href=\"{trimmed}\">{trimmed}</a>{}", &word[trimmed.len()..])
+            } else {
+                word.to_string()
+            }
+        })
+        .collect();
     format!(
-        "<div style=\"white-space:pre-wrap;font-family:inherit\">{}</div>",
-        escape(text)
+        "<div style=\"white-space:pre-wrap;word-break:break-word;font-family:inherit\">{}</div>",
+        linked.join(" ")
     )
 }
 
@@ -116,8 +128,11 @@ pub fn full(uid: u32, raw: &[u8]) -> Option<Full> {
     let msg = MessageParser::default().parse(raw)?;
 
     let text = msg.body_text(0).map(|t| t.to_string()).unwrap_or_default();
+    // An HTML-only message lists the same part as both text and HTML body, so look at the part's
+    // real type rather than comparing the two lists.
+    let real_html = msg.html_part(0).is_some_and(|p| matches!(p.body, PartType::Html(_)));
     let mut html = match msg.body_html(0) {
-        Some(h) if msg.html_body_count() > 0 && !msg.html_body.is_empty() && msg.text_body != msg.html_body => sanitize(&h),
+        Some(h) if real_html => sanitize(&h),
         _ => text_to_html(&text),
     };
 
@@ -173,4 +188,32 @@ pub fn attachment(raw: &[u8], index: usize) -> Option<(String, Vec<u8>)> {
     let msg = MessageParser::default().parse(raw)?;
     let part = msg.attachments().nth(index)?;
     Some((part.attachment_name().unwrap_or("attachment").to_string(), part.contents().to_vec()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn html_only_message_shows_html() {
+        let raw = b"From: A <a@x.com>\r\nSubject: Hi\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<p>Hello <a href=\"https://x.com/v\">Verify</a></p>";
+        let m = full(1, raw).unwrap();
+        assert!(m.html.contains("<a href=\"https://x.com/v\""), "{}", m.html);
+        assert!(!m.html.contains("pre-wrap"));
+    }
+
+    #[test]
+    fn alternative_prefers_html() {
+        let raw = b"From: a@x.com\r\nSubject: Hi\r\nContent-Type: multipart/alternative; boundary=b\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nplain\r\n--b\r\nContent-Type: text/html\r\n\r\n<b>rich</b>\r\n--b--\r\n";
+        let m = full(1, raw).unwrap();
+        assert!(m.html.contains("<b>rich</b>"), "{}", m.html);
+        assert_eq!(m.text.trim(), "plain");
+    }
+
+    #[test]
+    fn plain_text_links_are_clickable() {
+        let raw = b"From: a@x.com\r\nSubject: Hi\r\nContent-Type: text/plain\r\n\r\nSee https://example.com/a?b=1. Thanks";
+        let m = full(1, raw).unwrap();
+        assert!(m.html.contains("<a href=\"https://example.com/a?b=1\">"), "{}", m.html);
+    }
 }
