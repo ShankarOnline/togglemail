@@ -14,8 +14,26 @@ val tauriProperties = Properties().apply {
     }
 }
 
+// Play upload key: -PsigningProps=<file> or ~/Android/keys/togglemail-release.properties
+// (storeFile, storePassword, keyAlias, keyPassword). Never committed; Google keeps the app signing key.
+val signingProps = file(
+    (project.findProperty("signingProps") as String?)
+        ?: "${System.getProperty("user.home")}/Android/keys/togglemail-release.properties"
+)
+val releaseKey = signingProps.takeIf { it.exists() }?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
+
 android {
     compileSdk = 37
+    signingConfigs {
+        if (releaseKey != null) {
+            create("release") {
+                storeFile = file(releaseKey.getProperty("storeFile"))
+                storePassword = releaseKey.getProperty("storePassword")
+                keyAlias = releaseKey.getProperty("keyAlias")
+                keyPassword = releaseKey.getProperty("keyPassword")
+            }
+        }
+    }
     namespace = "com.toggleminds.togglemail"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
@@ -39,6 +57,7 @@ android {
             }
         }
         getByName("release") {
+            if (releaseKey != null) signingConfig = signingConfigs.getByName("release")
             optimization {
                enable = true
             }
