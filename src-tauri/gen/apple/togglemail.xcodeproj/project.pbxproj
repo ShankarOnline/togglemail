@@ -1,0 +1,638 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		025CBD1C235FB14C5181BD42 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF8389448B29D123996E121B /* UIKit.framework */; };
+		135C3048E94E7E511B1CD83D /* togglemail_watchOS.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 5C5482D5A792E7F0CFA458A9 /* togglemail_watchOS.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		16CFB3CBFD0F22B530C5648B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 560D23602D016CD8AC6C1F63 /* Assets.xcassets */; };
+		25AE2B5A9B01C96231C0972E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BC164F4D1A4F740282C07BB /* CoreGraphics.framework */; };
+		37729F7E2B4154BE15A72EA3 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB7D1A6C38016C06ED2A03BF /* Metal.framework */; };
+		3E5B924959EEAAE8A611F1D3 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B6C62717E328626109868F /* Store.swift */; };
+		524F9EB0ADB5AA23FC021921 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 9C73D36354A20FEFEA3DF5BB /* assets */; };
+		5C9ED268DFF2949601FDF585 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 346885F72D9A8889BC864C98 /* libapp.a */; };
+		6925D48BFD6982BE4365D366 /* ToggleMailWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C8BA4809589E543D8D7712 /* ToggleMailWatchApp.swift */; };
+		6F46FC0F2BC51CCE14D77F0F /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9D409668EA13A252D1BFB2BF /* main.mm */; };
+		858B066D96E0A365C0CD9EAD /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D0D3C042817277FA938A78 /* Views.swift */; };
+		B572AD5C9AE9EC9FFEA7BF0A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B4C31D131A97B3B0215F590 /* Security.framework */; };
+		B95834F1F29650EFE0E2B29D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30F8EEB70F3658F4A0357075 /* Assets.xcassets */; };
+		BBF70BBE4D7356071D81CB19 /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4C31DAA0762304A1879882 /* WatchBridge.swift */; };
+		BE7FAEFEBA863FAC6B711311 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAD19F0B5602BE304CCA616F /* QuartzCore.framework */; };
+		C02FECD0F80CE24E810F9F86 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D68C2633003FC557C94614B /* WebKit.framework */; };
+		CC35A53713D03381A7ECA250 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0D04873B978EBADC7FD9527 /* LaunchScreen.storyboard */; };
+		E3F2885F5C5B6031B8901F11 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC90EF5888CD07CFD280564E /* MetalKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9321DE195F27E9B65E67B2AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9E7CC61255947B700A2309E7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 845FF01E5ECBB00336C9CCD6;
+			remoteInfo = togglemail_watchOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		70141564C9A8A7B07E1D8FF3 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				135C3048E94E7E511B1CD83D /* togglemail_watchOS.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0884229FE141AF9B73655101 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		0D68C2633003FC557C94614B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		18403D43A6937660E0433621 /* phonemail.rs */ = {isa = PBXFileReference; path = phonemail.rs; sourceTree = "<group>"; };
+		190F84B031EA4E3FBA97ADCA /* pop3.rs */ = {isa = PBXFileReference; path = pop3.rs; sourceTree = "<group>"; };
+		2A4C31DAA0762304A1879882 /* WatchBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge.swift; sourceTree = "<group>"; };
+		30F8EEB70F3658F4A0357075 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		346885F72D9A8889BC864C98 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		3C997515D1A3502561C9CD4F /* imap.rs */ = {isa = PBXFileReference; path = imap.rs; sourceTree = "<group>"; };
+		40D0D3C042817277FA938A78 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		4234717E23AC80DC1163B56C /* togglemail_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = togglemail_iOS.entitlements; sourceTree = "<group>"; };
+		46B6C62717E328626109868F /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		4B4C31D131A97B3B0215F590 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		560D23602D016CD8AC6C1F63 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5BC164F4D1A4F740282C07BB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		5C5482D5A792E7F0CFA458A9 /* togglemail_watchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = togglemail_watchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5CB7942161F27C1B78789B79 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		5D8D6B85E3565CD2726A2B0D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		67112E60027CFBCC039A8818 /* password.rs */ = {isa = PBXFileReference; path = password.rs; sourceTree = "<group>"; };
+		6813922F8E6C78B9451F8280 /* togglemail_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = togglemail_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C237204776B9F2F693636C5 /* schedule.rs */ = {isa = PBXFileReference; path = schedule.rs; sourceTree = "<group>"; };
+		717C2456A89C2036643FB390 /* accounts.rs */ = {isa = PBXFileReference; path = accounts.rs; sourceTree = "<group>"; };
+		777B9F7C9FF5131A1CF7FEFD /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		85ECE1BFDA01A63E7F8F897A /* net.rs */ = {isa = PBXFileReference; path = net.rs; sourceTree = "<group>"; };
+		9C73D36354A20FEFEA3DF5BB /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		9D409668EA13A252D1BFB2BF /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		A5449186A4175F2E711DE4E7 /* parse.rs */ = {isa = PBXFileReference; path = parse.rs; sourceTree = "<group>"; };
+		AC90EF5888CD07CFD280564E /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		AF8389448B29D123996E121B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		C0D04873B978EBADC7FD9527 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D0C8BA4809589E543D8D7712 /* ToggleMailWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToggleMailWatchApp.swift; sourceTree = "<group>"; };
+		D727FCA33B2F21C7F1D3F5A2 /* smtp.rs */ = {isa = PBXFileReference; path = smtp.rs; sourceTree = "<group>"; };
+		D852DB26E07018D8152B83EF /* watch.rs */ = {isa = PBXFileReference; path = watch.rs; sourceTree = "<group>"; };
+		DB7D1A6C38016C06ED2A03BF /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		FAD19F0B5602BE304CCA616F /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		379B4EF86453AFBAAA5A0E32 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C9ED268DFF2949601FDF585 /* libapp.a in Frameworks */,
+				25AE2B5A9B01C96231C0972E /* CoreGraphics.framework in Frameworks */,
+				37729F7E2B4154BE15A72EA3 /* Metal.framework in Frameworks */,
+				E3F2885F5C5B6031B8901F11 /* MetalKit.framework in Frameworks */,
+				BE7FAEFEBA863FAC6B711311 /* QuartzCore.framework in Frameworks */,
+				B572AD5C9AE9EC9FFEA7BF0A /* Security.framework in Frameworks */,
+				025CBD1C235FB14C5181BD42 /* UIKit.framework in Frameworks */,
+				C02FECD0F80CE24E810F9F86 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		090661618E1CC9B574626C7D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5BC164F4D1A4F740282C07BB /* CoreGraphics.framework */,
+				346885F72D9A8889BC864C98 /* libapp.a */,
+				DB7D1A6C38016C06ED2A03BF /* Metal.framework */,
+				AC90EF5888CD07CFD280564E /* MetalKit.framework */,
+				FAD19F0B5602BE304CCA616F /* QuartzCore.framework */,
+				4B4C31D131A97B3B0215F590 /* Security.framework */,
+				AF8389448B29D123996E121B /* UIKit.framework */,
+				0D68C2633003FC557C94614B /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		139A0E1ECADC764D02BE840D /* togglemail */ = {
+			isa = PBXGroup;
+			children = (
+				9D409668EA13A252D1BFB2BF /* main.mm */,
+				9B40E30A27FF48D64A2CB2E3 /* bindings */,
+			);
+			path = togglemail;
+			sourceTree = "<group>";
+		};
+		222C19DEF3B8A41613C1593C /* togglemail_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				5D8D6B85E3565CD2726A2B0D /* Info.plist */,
+				4234717E23AC80DC1163B56C /* togglemail_iOS.entitlements */,
+			);
+			path = togglemail_iOS;
+			sourceTree = "<group>";
+		};
+		3CBE60CA4E170F5BC406136B /* ios */ = {
+			isa = PBXGroup;
+			children = (
+				2A4C31DAA0762304A1879882 /* WatchBridge.swift */,
+			);
+			name = ios;
+			path = ../../../apple/ios;
+			sourceTree = "<group>";
+		};
+		4EF4270D35F9F60980076BC9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6813922F8E6C78B9451F8280 /* togglemail_iOS.app */,
+				5C5482D5A792E7F0CFA458A9 /* togglemail_watchOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		524FC8DD3FA5AE5C9513A222 /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		65A98341792004B5C127B150 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				717C2456A89C2036643FB390 /* accounts.rs */,
+				3C997515D1A3502561C9CD4F /* imap.rs */,
+				777B9F7C9FF5131A1CF7FEFD /* lib.rs */,
+				5CB7942161F27C1B78789B79 /* main.rs */,
+				85ECE1BFDA01A63E7F8F897A /* net.rs */,
+				A5449186A4175F2E711DE4E7 /* parse.rs */,
+				67112E60027CFBCC039A8818 /* password.rs */,
+				18403D43A6937660E0433621 /* phonemail.rs */,
+				190F84B031EA4E3FBA97ADCA /* pop3.rs */,
+				6C237204776B9F2F693636C5 /* schedule.rs */,
+				D727FCA33B2F21C7F1D3F5A2 /* smtp.rs */,
+				D852DB26E07018D8152B83EF /* watch.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		9B40E30A27FF48D64A2CB2E3 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				0884229FE141AF9B73655101 /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		9C06F59AE7BDE19DA33FE9EC = {
+			isa = PBXGroup;
+			children = (
+				9C73D36354A20FEFEA3DF5BB /* assets */,
+				560D23602D016CD8AC6C1F63 /* Assets.xcassets */,
+				C0D04873B978EBADC7FD9527 /* LaunchScreen.storyboard */,
+				524FC8DD3FA5AE5C9513A222 /* Externals */,
+				3CBE60CA4E170F5BC406136B /* ios */,
+				D5185DC1C94858B6EDB2157F /* Sources */,
+				65A98341792004B5C127B150 /* src */,
+				222C19DEF3B8A41613C1593C /* togglemail_iOS */,
+				AC1C77DF082C9020E225C07B /* watch */,
+				090661618E1CC9B574626C7D /* Frameworks */,
+				4EF4270D35F9F60980076BC9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AC1C77DF082C9020E225C07B /* watch */ = {
+			isa = PBXGroup;
+			children = (
+				30F8EEB70F3658F4A0357075 /* Assets.xcassets */,
+				46B6C62717E328626109868F /* Store.swift */,
+				D0C8BA4809589E543D8D7712 /* ToggleMailWatchApp.swift */,
+				40D0D3C042817277FA938A78 /* Views.swift */,
+			);
+			name = watch;
+			path = ../../../apple/watch;
+			sourceTree = "<group>";
+		};
+		D5185DC1C94858B6EDB2157F /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				139A0E1ECADC764D02BE840D /* togglemail */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		845FF01E5ECBB00336C9CCD6 /* togglemail_watchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8BF8A53E3A40442D5F5EEF04 /* Build configuration list for PBXNativeTarget "togglemail_watchOS" */;
+			buildPhases = (
+				62ABBFF6046290F643701CC9 /* Sources */,
+				D3E279585FB6E9EBE2653DC5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = togglemail_watchOS;
+			packageProductDependencies = (
+			);
+			productName = togglemail_watchOS;
+			productReference = 5C5482D5A792E7F0CFA458A9 /* togglemail_watchOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E901FA193D5D5AE105F7E7E1 /* togglemail_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E168784C695A5A06BE987B7F /* Build configuration list for PBXNativeTarget "togglemail_iOS" */;
+			buildPhases = (
+				1020BB76BD423693C5F56BE4 /* Build Rust Code */,
+				A914B59129D9EA1C7755EE3E /* Sources */,
+				43D19D2E83177E671C40D4DB /* Resources */,
+				379B4EF86453AFBAAA5A0E32 /* Frameworks */,
+				70141564C9A8A7B07E1D8FF3 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F6A83B19BFBFCE77EFF4067C /* PBXTargetDependency */,
+			);
+			name = togglemail_iOS;
+			packageProductDependencies = (
+			);
+			productName = togglemail_iOS;
+			productReference = 6813922F8E6C78B9451F8280 /* togglemail_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9E7CC61255947B700A2309E7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					845FF01E5ECBB00336C9CCD6 = {
+						DevelopmentTeam = RAKS7AXSK2;
+						ProvisioningStyle = Automatic;
+					};
+					E901FA193D5D5AE105F7E7E1 = {
+						DevelopmentTeam = RAKS7AXSK2;
+					};
+				};
+			};
+			buildConfigurationList = F0A90D89D32D59DD36E2E39D /* Build configuration list for PBXProject "togglemail" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 9C06F59AE7BDE19DA33FE9EC;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4EF4270D35F9F60980076BC9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E901FA193D5D5AE105F7E7E1 /* togglemail_iOS */,
+				845FF01E5ECBB00336C9CCD6 /* togglemail_watchOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		43D19D2E83177E671C40D4DB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				16CFB3CBFD0F22B530C5648B /* Assets.xcassets in Resources */,
+				CC35A53713D03381A7ECA250 /* LaunchScreen.storyboard in Resources */,
+				524F9EB0ADB5AA23FC021921 /* assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D3E279585FB6E9EBE2653DC5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B95834F1F29650EFE0E2B29D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1020BB76BD423693C5F56BE4 /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cargo tauri ios xcode-script -v --platform \"${PLATFORM_DISPLAY_NAME:?}\" --sdk-root \"${SDKROOT:?}\" --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration \"${CONFIGURATION:?}\" ${FORCE_COLOR} ${ARCHS:?}\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		62ABBFF6046290F643701CC9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3E5B924959EEAAE8A611F1D3 /* Store.swift in Sources */,
+				6925D48BFD6982BE4365D366 /* ToggleMailWatchApp.swift in Sources */,
+				858B066D96E0A365C0CD9EAD /* Views.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A914B59129D9EA1C7755EE3E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBF70BBE4D7356071D81CB19 /* WatchBridge.swift in Sources */,
+				6F46FC0F2BC51CCE14D77F0F /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F6A83B19BFBFCE77EFF4067C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 845FF01E5ECBB00336C9CCD6 /* togglemail_watchOS */;
+			targetProxy = 9321DE195F27E9B65E67B2AF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		185084214BD9EBA75D53DE41 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = togglemail_iOS/togglemail_iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = RAKS7AXSK2;
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = togglemail_iOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.toggleminds.togglemail;
+				PRODUCT_NAME = "ToggleMail";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = release;
+		};
+		5687A307C7AB97ED1D088DAE /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RAKS7AXSK2;
+				INFOPLIST_FILE = togglemail_watchOS/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.toggleminds.togglemail.watchkitapp;
+				PRODUCT_NAME = ToggleMail;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = release;
+		};
+		62C7B03A1845B753CCCAA942 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		CDA2A074DB547F1BE664D00A /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RAKS7AXSK2;
+				INFOPLIST_FILE = togglemail_watchOS/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.toggleminds.togglemail.watchkitapp;
+				PRODUCT_NAME = ToggleMail;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = debug;
+		};
+		CFB58E7B55E7B4735C8DAAA2 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+		DFC5F718586DBB614D471FC3 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = togglemail_iOS/togglemail_iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = RAKS7AXSK2;
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = togglemail_iOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.toggleminds.togglemail;
+				PRODUCT_NAME = "ToggleMail";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8BF8A53E3A40442D5F5EEF04 /* Build configuration list for PBXNativeTarget "togglemail_watchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDA2A074DB547F1BE664D00A /* debug */,
+				5687A307C7AB97ED1D088DAE /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		E168784C695A5A06BE987B7F /* Build configuration list for PBXNativeTarget "togglemail_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DFC5F718586DBB614D471FC3 /* debug */,
+				185084214BD9EBA75D53DE41 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		F0A90D89D32D59DD36E2E39D /* Build configuration list for PBXProject "togglemail" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFB58E7B55E7B4735C8DAAA2 /* debug */,
+				62C7B03A1845B753CCCAA942 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9E7CC61255947B700A2309E7 /* Project object */;
+}

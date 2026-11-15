@@ -11,7 +11,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 TEAM=${TEAM:-RAKS7AXSK2}
 ASC_KEY_ID=${ASC_KEY_ID:-D38P4ZFFBF}
-ASC_ISSUER=${ASC_ISSUER:-$(sed -n 's/^issuer *= *//p' ~/.appstoreconnect/config 2>/dev/null)}
+ASC_ISSUER=${ASC_ISSUER:-$(sed -n 's/^ASC_ISSUER_ID *= *//p' ~/.appstoreconnect/config 2>/dev/null)}
+[ -n "$ASC_ISSUER" ] || { echo "No ASC_ISSUER_ID in ~/.appstoreconnect/config"; exit 1; }
+export API_PRIVATE_KEYS_DIR=~/.appstoreconnect/private_keys
+export LANG=en_US.UTF-8
+[ -f ~/.cargo/env ] && . ~/.cargo/env
+export PATH=/opt/homebrew/bin:$PATH
 upload() { # $1 = macos|ios, $2 = file
   xcrun altool --upload-app --type "$1" --file "$2" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER"
 }
@@ -31,8 +36,13 @@ case "${1:-}" in
   ios)
     rustup target add aarch64-apple-ios >/dev/null
     [ -d src-tauri/gen/apple ] || cargo tauri ios init
-    cargo tauri ios build --export-method app-store-connect
-    ipa=$(ls -t src-tauri/gen/apple/build/arm64/*.ipa | head -1)
+    # Apple Watch: apple/watch is a target in gen/apple/project.yml, embedded in the iPhone app.
+    (cd src-tauri/gen/apple && xcodegen generate)
+    # Lets Xcode make the App Store profiles for the iPhone and watch apps itself.
+    APPLE_API_KEY=$ASC_KEY_ID APPLE_API_ISSUER=$ASC_ISSUER APPLE_API_KEY_PATH=$API_PRIVATE_KEYS_DIR/AuthKey_$ASC_KEY_ID.p8 \
+      cargo tauri ios build --export-method app-store-connect
+    ipa=$(find src-tauri/gen/apple/build -name '*.ipa' -newer src-tauri/gen/apple/project.yml | head -1)
+    [ -n "$ipa" ] || { echo "No .ipa was made"; exit 1; }
     upload ios "$ipa" ;;
   *)
     echo "Usage: bash scripts/apple-build.sh mac|ios"; exit 1 ;;
