@@ -119,17 +119,76 @@ async function refreshUnread(id) {
   renderSidebar();
 }
 
+// ---------- accounts grouped by mail service ----------
+const SERVICES = [
+  { id: 'toggle', label: 'Toggle Minds', test: (h, d) => /jaiaditya\.org$/.test(h) || ['shankars.org', 'jaiaditya.org', 'knkoa.org', 'toggleminds.com', 'phonemail.net'].includes(d),
+    logo: '<img src="logo.svg" alt="">' },
+  { id: 'google', label: 'Google', test: (h) => /gmail\.com$|google/.test(h),
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1Z"/></svg>' },
+  { id: 'microsoft', label: 'Microsoft', test: (h) => /office365|outlook|hotmail|live\.com/.test(h),
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo"><path fill="#F25022" d="M3 3h8.5v8.5H3z"/><path fill="#7FBA00" d="M12.5 3H21v8.5h-8.5z"/><path fill="#00A4EF" d="M3 12.5h8.5V21H3z"/><path fill="#FFB900" d="M12.5 12.5H21V21h-8.5z"/></svg>' },
+  { id: 'apple', label: 'Apple iCloud', test: (h) => /mail\.me\.com|icloud/.test(h),
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo mono"><path d="M16.4 12.7c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-3.9ZM14 5.6c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4Z"/></svg>' },
+  { id: 'yahoo', label: 'Yahoo', test: (h) => /yahoo/.test(h),
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo"><rect width="24" height="24" rx="5" fill="#6001D2"/><path fill="#fff" d="M5 7h3l2 4.6L12.1 7H15l-4.2 9H8l1-2.1Zm11 0h3l-2.6 6h-3Zm-1.6 7h2.4v2.4h-2.4z"/></svg>' },
+  { id: 'proton', label: 'Proton', test: (h, d) => /proton|pm\.me/.test(d) || h === '127.0.0.1',
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo"><rect width="24" height="24" rx="5" fill="#6D4AFF"/><path fill="#fff" d="M7 18V6h5.5a4 4 0 0 1 0 8H10v4Zm3-6.6h2.3a1.4 1.4 0 0 0 0-2.8H10Z"/></svg>' },
+  { id: 'zoho', label: 'Zoho', test: (h) => /zoho/.test(h),
+    logo: '<svg viewBox="0 0 24 24" class="brand-logo"><rect width="24" height="24" rx="5" fill="#E42527"/><path fill="#fff" d="M6 7h8v2l-5 6h5v2H6v-2l5-6H6Z"/></svg>' },
+];
+const OTHER_LOGO = '<svg viewBox="0 0 24 24" class="brand-logo mono"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+function serviceOf(a) {
+  const h = (a.imap_host || '').toLowerCase();
+  const d = domainOf(a.email);
+  return SERVICES.find((s) => s.test(h, d)) || { id: 'other:' + d, label: d, logo: OTHER_LOGO };
+}
+
+/** Initials from the account's name (first, middle, last); without a name, guessed from the address. */
+function initialsOf(a) {
+  let words = (a.name || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2) {
+    const local = a.email.split('@')[0];
+    words = local.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[\s._\-+]+/).filter((w) => /[a-z]/i.test(w));
+  }
+  if (!words.length) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  const letters = words.length === 2 ? [words[0], words[1]] : [words[0], words[1], words[words.length - 1]];
+  return letters.map((w) => w[0]).join('').toUpperCase().slice(0, 3);
+}
+
 function renderSidebar() {
   const nav = $('#accounts');
   nav.innerHTML = '';
+  // Group accounts by mail service, in the order of SERVICES, then other domains.
+  const groups = new Map();
   for (const a of state.accounts) {
+    const s = serviceOf(a);
+    if (!groups.has(s.id)) groups.set(s.id, { service: s, accounts: [] });
+    groups.get(s.id).accounts.push(a);
+  }
+  const rank = (id) => { const i = SERVICES.findIndex((s) => s.id === id); return i < 0 ? 99 : i; };
+  const ordered = [...groups.values()].sort((x, y) => rank(x.service.id) - rank(y.service.id) || x.service.label.localeCompare(y.service.label));
+  for (const g of ordered) {
+    const head = document.createElement('div');
+    head.className = 'service-head';
+    head.title = g.service.label;
+    head.innerHTML = `<span class="service-logo">${g.service.logo}</span><span class="txt">${esc(g.service.label)}</span>`;
+    nav.append(head);
+    for (const a of g.accounts) renderAccount(nav, a, g.service);
+  }
+}
+
+function renderAccount(nav, a, service) {
+  {
     const box = document.createElement('div');
     box.className = 'acct';
-    // Two letters (address + domain) and a colour per account, so accounts differ in icons-only view.
-    const [local, domain = ''] = a.email.toLowerCase().split('@');
-    const initial = esc((local.charAt(0) + domain.charAt(0)).toUpperCase() || '?');
     const hue = [...a.email.toLowerCase()].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
-    box.innerHTML = `<div class="acct-head" title="${esc(a.email)}"><span class="avatar" style="background:hsl(${hue} 65% 72%)">${initial}</span><span class="aname">${esc(a.email)}</span><button title="Account settings">⚙</button></div>`;
+    const ini = esc(initialsOf(a));
+    box.innerHTML = `<div class="acct-head" title="${esc((a.name ? a.name + ' · ' : '') + a.email)}">
+      <span class="avatar${ini.length > 2 ? ' three' : ''}" style="background:hsl(${hue} 60% 74%)">${ini}<span class="badge">${service.logo}</span></span>
+      <span class="aname"><span class="who">${esc(a.name || a.email.split('@')[0])}</span><span class="addr">${esc(a.email)}</span></span>
+      <button title="Account settings">⚙</button></div>`;
     box.querySelector('button').onclick = () => openAccountForm(a);
     // With icons-only navigation the avatar opens the account settings.
     box.querySelector('.avatar').onclick = () => view.nav === 'icons' && openAccountForm(a);

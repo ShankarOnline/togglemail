@@ -129,6 +129,29 @@ input:focus, select:focus, textarea:focus, #editor:focus { outline: 2px solid va
   width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none;
   background: var(--mint); color: #08302a; font-weight: 700; font-size: 10.5px; letter-spacing: -.02em; text-transform: uppercase;
 }
+/* Accounts grouped by mail service */
+.service-head {
+  display: flex; align-items: center; gap: 8px; margin: 12px 4px 2px; padding-top: 8px;
+  border-top: 1px solid rgb(255 255 255 / .14); font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--nav-muted);
+}
+#accounts .service-head:first-child { border-top: none; margin-top: 2px; padding-top: 0; }
+#app.plain .service-head { border-top-color: var(--line); }
+.service-logo { width: 20px; height: 20px; display: grid; place-items: center; flex: none;
+  background: #fff; border-radius: 5px; padding: 2px; }
+.service-logo img, .service-logo svg { width: 16px; height: 16px; border-radius: 3px; }
+.brand-logo.mono { color: #111; }
+.avatar { position: relative; }
+.avatar.three { font-size: 9.5px; letter-spacing: -.04em; }
+.avatar .badge {
+  position: absolute; right: -4px; bottom: -4px; width: 14px; height: 14px; display: grid; place-items: center;
+  background: #fff; border-radius: 4px; box-shadow: 0 0 0 1.5px var(--nav-bg);
+}
+.avatar .badge img, .avatar .badge svg { width: 11px; height: 11px; border-radius: 2px; }
+.acct-head .aname { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.acct-head .aname .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-head .aname .addr { font-size: 11px; font-weight: 400; color: var(--nav-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app.nav-icons .service-head { justify-content: center; margin: 10px 0 2px; }
 .folder { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--nav-text); }
 .folder .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .folder:hover { background: var(--nav-hover); }

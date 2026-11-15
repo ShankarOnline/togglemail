@@ -1,6 +1,6 @@
 name: togglemail
 base: core22
-version: '0.1.1'
+version: '0.1.2'
 title: ToggleMail
 summary: Email for any IMAP, POP3 or SMTP account
 description: |
