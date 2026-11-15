@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=ToggleMail
+GenericName=Email
+Comment=All your email accounts in one window
+Exec=togglemail
+Icon=com.toggleminds.togglemail
+Terminal=false
+Categories=Network;Email;Office;
+Keywords=email;mail;imap;pop3;gmail;outlook;icloud;
+StartupWMClass=togglemail

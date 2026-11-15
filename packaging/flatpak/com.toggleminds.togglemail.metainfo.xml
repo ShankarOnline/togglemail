@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 Shankar Raj -->
+<component type="desktop-application">
+  <id>com.toggleminds.togglemail</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>ToggleMail</name>
+  <summary>All your email accounts in one window</summary>
+  <developer id="com.toggleminds">
+    <name>Toggle Minds</name>
+  </developer>
+
+  <description>
+    <p>
+      ToggleMail brings all your email together: Gmail, Outlook, iCloud, Yahoo, Zoho, PhoneMail,
+      Proton (through Proton Mail Bridge), mailbox.org, Posteo and your own domain &#8212; or any
+      IMAP, POP3 or SMTP account.
+    </p>
+    <ul>
+      <li>Accounts grouped by mail service, each with its folders and unread counts</li>
+      <li>Inbox, Starred, Snoozed, Drafts, Scheduled, Sent, Archive, Spam, Trash and your own folders</li>
+      <li>Schedule an email for later, or snooze one until you need it</li>
+      <li>Safe HTML reading: scripts are removed and pictures load only from senders you allow</li>
+      <li>HTML writing with attachments, links and signatures</li>
+      <li>Reading pane on the right, at the bottom or off; navigation as icons</li>
+      <li>Passwords kept in your keyring, never on anyone's server</li>
+    </ul>
+    <p>
+      ToggleMail is free and open source, with no ads &#8212; a family project by Toggle Minds.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.toggleminds.togglemail.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>All your accounts and folders, with an email open</caption>
+      <image>https://toggleminds.com/togglemail/media/01-inbox-1280x800-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Writing an email</caption>
+      <image>https://toggleminds.com/togglemail/media/03-compose-1280x800-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Scheduled email, sent later</caption>
+      <image>https://toggleminds.com/togglemail/media/04-scheduled-1280x800-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Dark style</caption>
+      <image>https://toggleminds.com/togglemail/media/01-inbox-1280x800-dark.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://toggleminds.com/togglemail/</url>
+  <url type="bugtracker">https://github.com/ShankarOnline/togglemail/issues</url>
+  <url type="vcs-browser">https://github.com/ShankarOnline/togglemail</url>
+  <url type="contact">https://toggleminds.com/togglemail/contact/</url>
+  <url type="contribute">https://github.com/ShankarOnline/togglemail/blob/main/CONTRIBUTING.md</url>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#4fd1b8</color>
+    <color type="primary" scheme_preference="dark">#0f7b6c</color>
+  </branding>
+
+  <content_rating type="oars-1.1" />
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <categories>
+    <category>Network</category>
+    <category>Email</category>
+    <category>Office</category>
+  </categories>
+  <keywords>
+    <keyword>email</keyword>
+    <keyword>mail</keyword>
+    <keyword>imap</keyword>
+    <keyword>gmail</keyword>
+    <keyword>outlook</keyword>
+  </keywords>
+
+  <releases>
+    <release version="0.1.2" date="2026-11-15">
+      <description>
+        <p>First public release.</p>
+        <ul>
+          <li>Accounts grouped by mail service, including PhoneMail</li>
+          <li>Scheduled sending, snoozing and starred mail</li>
+          <li>Open source under the GNU GPL</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

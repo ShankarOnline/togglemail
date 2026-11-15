@@ -105,3 +105,18 @@ jobs:
         with:
           name: installers-snap
           path: ${{ steps.snapcraft.outputs.snap }}
+
+  # Flathub (GNOME Software): builds the Flatpak the way Flathub does, offline from cargo-sources.json.
+  flatpak:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
+        with:
+          bundle: togglemail.flatpak
+          manifest-path: packaging/flatpak/com.toggleminds.togglemail.yml
+          cache-key: flatpak-builder-${{ github.sha }}
