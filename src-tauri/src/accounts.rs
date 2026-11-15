@@ -16,7 +16,11 @@ pub enum Protocol {
     #[default]
     Imap,
     Pop3,
+    /// PhoneMail's own interface (no IMAP): signs in with the phone number and password.
+    Phonemail,
 }
+
+pub const PHONEMAIL_HOST: &str = "mail.phonemail.net";
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
@@ -83,6 +87,8 @@ pub fn providers() -> Vec<Provider> {
         p("ours", "Shankars / Jai Aditya / KNKOA / Toggle Minds",
           &["shankars.org", "jaiaditya.org", "knkoa.org", "toggleminds.com"],
           Some(("mail.jaiaditya.org", 993, T)), None, Some(("mail.jaiaditya.org", 587, S)), ""),
+        // Listed so it can be picked; its settings come from settings_for (PhoneMail's own interface).
+        p("phonemail", "PhoneMail", &["phonemail.net"], None, None, None, ""),
         p("gmail", "Gmail", &["gmail.com", "googlemail.com"],
           Some(("imap.gmail.com", 993, T)), Some(("pop.gmail.com", 995, T)), Some(("smtp.gmail.com", 587, S)),
           "Gmail needs an app password: Google Account > Security > 2-Step Verification > App passwords. For POP3, turn it on in Gmail settings > Forwarding and POP/IMAP."),
@@ -174,6 +180,22 @@ pub fn settings_for(email: &str, provider_id: &str, protocol: Protocol) -> Serve
         all.iter().find(|p| p.id == provider_id)
     };
     let fill = |h: &str| h.replace("{domain}", &domain);
+    if provider_id == "phonemail" || (provider_id.is_empty() && domain == "phonemail.net") {
+        return ServerSettings {
+            provider: "phonemail".into(),
+            protocol: Protocol::Phonemail,
+            imap_host: PHONEMAIL_HOST.into(),
+            imap_port: 443,
+            incoming_security: T,
+            smtp_host: PHONEMAIL_HOST.into(),
+            smtp_port: 443,
+            smtp_security: T,
+            accept_invalid_certs: false,
+            pop3_available: false,
+            supported: true,
+            note: "Sign in with your PhoneMail number and password (set one in PhoneMail > Settings if you only used SMS codes).".into(),
+        };
+    }
     match found {
         Some(p) => {
             let protocol = if protocol == Protocol::Pop3 && p.pop3.is_some() { Protocol::Pop3 } else { Protocol::Imap };

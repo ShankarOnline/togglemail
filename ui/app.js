@@ -123,6 +123,7 @@ async function refreshUnread(id) {
 const SERVICES = [
   { id: 'toggle', label: 'Toggle Minds', test: (h, d) => /jaiaditya\.org$/.test(h) || ['shankars.org', 'jaiaditya.org', 'knkoa.org', 'toggleminds.com', 'phonemail.net'].includes(d),
     logo: '<img src="logo.svg" alt="">' },
+  { id: 'phonemail', label: 'PhoneMail', test: (h) => /phonemail\.net$/.test(h), logo: '<img src="phonemail.svg" alt="">' },
   { id: 'google', label: 'Google', test: (h) => /gmail\.com$|google/.test(h),
     logo: '<svg viewBox="0 0 24 24" class="brand-logo"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1Z"/></svg>' },
   { id: 'microsoft', label: 'Microsoft', test: (h) => /office365|outlook|hotmail|live\.com/.test(h),
@@ -722,6 +723,7 @@ function openAccountForm(account = null) {
   $('#account-save').disabled = false;
   $('#app-password-btn').hidden = true;
   showCertOption('known'); // hidden unless already ticked; a provider choice updates it
+  phoneMailMode(account?.protocol === 'phonemail');
   $('#account-dlg').showModal();
 }
 
@@ -752,7 +754,8 @@ async function suggestServers() {
     return;
   }
   if (!f.email.value.includes('@')) return;
-  const s = await invoke('guess_settings', { email: f.email.value, provider: f.provider.value, protocol: f.protocol.value });
+  const s = await invoke('guess_settings', { email: phoneMailAddress(f.email.value), provider: f.provider.value, protocol: f.protocol.value });
+  phoneMailMode(s.protocol === 'phonemail');
   if (s.protocol !== f.protocol.value) f.protocol.value = s.protocol;
   $('#incoming-label').textContent = s.protocol === 'pop3' ? 'POP3 server' : 'IMAP server';
   f.imap_host.value = s.imap_host;
@@ -777,6 +780,24 @@ async function suggestServers() {
   btn.onclick = () => page && openUrl(page);
   showCertOption(s.provider);
   $('#account-save').disabled = !s.supported;
+}
+
+/** A bare 10-digit number becomes its PhoneMail address. */
+function phoneMailAddress(value) {
+  const v = value.trim();
+  const digits = v.replace(/[\s+-]/g, '').replace(/^91(?=\d{10}$)/, '');
+  return /^\d{10}$/.test(digits) ? `${digits}@phonemail.net` : v;
+}
+
+/** PhoneMail signs in with the number and password only: no IMAP/POP3/SMTP choices on show. */
+function phoneMailMode(on) {
+  const f = $('#account-form');
+  f.protocol.closest('label').hidden = on;
+  $('#advanced').hidden = on;
+  f.email.type = on || f.provider.value === 'phonemail' ? 'text' : 'email';
+  f.email.placeholder = on || f.provider.value === 'phonemail' ? '9876543210 or 9876543210@phonemail.net' : 'you@shankars.org';
+  if (on) f.protocol.value = 'phonemail';
+  else if (f.protocol.value === 'phonemail') f.protocol.value = 'imap';
 }
 
 const APP_PASSWORD_PAGES = {
@@ -812,7 +833,7 @@ async function saveAccount(ev) {
     const input = {
       id: editing?.id ?? null,
       name: f.name.value,
-      email: f.email.value,
+      email: f.protocol.value === 'phonemail' ? phoneMailAddress(f.email.value) : f.email.value,
       username: f.username.value,
       protocol: f.protocol.value,
       imap_host: f.imap_host.value,

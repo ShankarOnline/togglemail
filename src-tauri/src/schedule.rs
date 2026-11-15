@@ -43,6 +43,9 @@ fn no_pop(id: &str) -> Result<()> {
 
 /// Puts a finished message in Scheduled, to be sent at `send_at` (unix seconds).
 pub async fn schedule(pool: &Pool, id: &str, draft: &smtp::Draft, send_at: i64) -> Result<()> {
+    if let Some(acc) = imap::pm(id)? {
+        return crate::phonemail::schedule(&acc, draft, send_at).await;
+    }
     no_pop(id)?;
     if send_at <= now() {
         return Err(anyhow!("pick a time in the future"));
@@ -78,6 +81,14 @@ fn unwrap_scheduled(raw: &[u8]) -> (i64, Vec<String>, Vec<u8>) {
 
 /// Sends scheduled messages that are due (or the one `only` uid, now). Returns how many were sent.
 pub async fn send_due(pool: &Pool, id: &str, only: Option<u32>) -> Result<u32> {
+    if let Some(acc) = imap::pm(id)? {
+        // PhoneMail sends scheduled mail itself; ToggleMail only sends one now on request.
+        if let Some(uid) = only {
+            crate::phonemail::send_now(&acc, uid).await?;
+            return Ok(1);
+        }
+        return Ok(0);
+    }
     if imap::pop(id)?.is_some() {
         return Ok(0);
     }
@@ -138,6 +149,10 @@ pub async fn send_due(pool: &Pool, id: &str, only: Option<u32>) -> Result<u32> {
 
 /// Snoozes a message until `until` (unix seconds): keyword, then move to Snoozed.
 pub async fn snooze(pool: &Pool, id: &str, from: &str, uid: u32, until: i64) -> Result<()> {
+    if let Some(acc) = imap::pm(id)? {
+        let _ = from;
+        return crate::phonemail::snooze(&acc, uid, until).await;
+    }
     no_pop(id)?;
     if until <= now() {
         return Err(anyhow!("pick a time in the future"));
@@ -156,6 +171,14 @@ pub async fn snooze(pool: &Pool, id: &str, from: &str, uid: u32, until: i64) -> 
 
 /// Returns snoozed messages whose time has come (or the one `only` uid) to the inbox.
 pub async fn wake_due(pool: &Pool, id: &str, only: Option<u32>) -> Result<u32> {
+    if let Some(acc) = imap::pm(id)? {
+        // PhoneMail wakes snoozed chats itself; ToggleMail only unsnoozes on request.
+        if let Some(uid) = only {
+            crate::phonemail::unsnooze(&acc, uid).await?;
+            return Ok(1);
+        }
+        return Ok(0);
+    }
     if imap::pop(id)?.is_some() {
         return Ok(0);
     }
@@ -198,6 +221,9 @@ pub async fn wake_due(pool: &Pool, id: &str, only: Option<u32>) -> Result<u32> {
 
 /// Starred: flagged messages in the inbox, newest first.
 pub async fn starred(pool: &Pool, id: &str) -> Result<(String, Vec<Summary>)> {
+    if let Some(acc) = imap::pm(id)? {
+        return Ok(("Inbox".into(), crate::phonemail::starred(&acc).await?));
+    }
     let inbox = folder(pool, id, "inbox").await?;
     if imap::pop(id)?.is_some() {
         let (items, _) = pool.messages(id, &inbox, 0, 500).await?;

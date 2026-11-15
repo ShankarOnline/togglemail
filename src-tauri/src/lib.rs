@@ -2,6 +2,7 @@ mod accounts;
 mod imap;
 mod net;
 mod parse;
+mod phonemail;
 mod password;
 mod pop3;
 mod schedule;
@@ -114,6 +115,9 @@ async fn search(pool: State<'_, Pool>, account: String, folder: String, query: S
 
 #[tauri::command]
 async fn open_message(pool: State<'_, Pool>, account: String, folder: String, uid: u32, mark_read: Option<bool>) -> Res<Full> {
+    if let Some(acc) = imap::pm(&account).map_err(err)? {
+        return phonemail::open(&acc, &folder, uid, mark_read.unwrap_or(true)).await.map_err(err);
+    }
     let raw = pool.raw(&account, &folder, uid, mark_read.unwrap_or(true)).await.map_err(err)?;
     parse::full(uid, &raw).ok_or_else(|| "could not read this message".to_string())
 }
@@ -147,8 +151,13 @@ async fn delete_message(pool: State<'_, Pool>, account: String, folder: String, 
 /// Saves an attachment into Downloads (never overwriting) and returns the path.
 #[tauri::command]
 async fn save_attachment(pool: State<'_, Pool>, account: String, folder: String, uid: u32, index: usize) -> Res<String> {
-    let raw = pool.raw(&account, &folder, uid, false).await.map_err(err)?;
-    let (name, bytes) = parse::attachment(&raw, index).ok_or("attachment not found")?;
+    let (name, bytes) = match imap::pm(&account).map_err(err)? {
+        Some(acc) => phonemail::attachment(&acc, index, None).await.map_err(err)?,
+        None => {
+            let raw = pool.raw(&account, &folder, uid, false).await.map_err(err)?;
+            parse::attachment(&raw, index).ok_or("attachment not found")?
+        }
+    };
     let dir = dirs::download_dir().or_else(dirs::home_dir).ok_or("no Downloads folder")?;
     let safe: String = name.chars().map(|c| if "/\\:*?\"<>|".contains(c) || c.is_control() { '_' } else { c }).collect();
     let safe = if safe.trim().is_empty() { "attachment".to_string() } else { safe };
@@ -169,6 +178,10 @@ async fn save_attachment(pool: State<'_, Pool>, account: String, folder: String,
 #[tauri::command]
 async fn send(pool: State<'_, Pool>, account: String, draft: smtp::Draft, reply_to_uid: Option<u32>, reply_folder: Option<String>) -> Res<()> {
     let acc = accounts::get(&account).map_err(err)?;
+    if acc.protocol == Protocol::Phonemail {
+        let _ = (&pool, reply_to_uid, reply_folder);
+        return phonemail::send(&acc, &draft).await.map_err(err);
+    }
     let pw = accounts::password(&account).map_err(err)?;
     let msg = smtp::build(&acc, &draft).map_err(err)?;
     let raw = msg.formatted();

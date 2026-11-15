@@ -101,12 +101,12 @@ pub fn summary(uid: u32, header: &[u8], size: u32, flags: &[String]) -> Summary 
     }
 }
 
-fn escape(text: &str) -> String {
+pub(crate) fn escape(text: &str) -> String {
     text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
 }
 
 /// Plain-text mail: kept as written, with web addresses made clickable.
-fn text_to_html(text: &str) -> String {
+pub(crate) fn text_to_html(text: &str) -> String {
     let linked: Vec<String> = escape(text)
         .split(' ')
         .map(|word| {
@@ -124,7 +124,7 @@ fn text_to_html(text: &str) -> String {
     )
 }
 
-fn sanitize(html: &str) -> String {
+pub(crate) fn sanitize(html: &str) -> String {
     let attrs: HashSet<&str> = [
         "style", "class", "align", "valign", "bgcolor", "color", "width", "height", "border",
         "cellpadding", "cellspacing", "dir", "lang", "title", "face", "size",

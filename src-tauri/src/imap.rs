@@ -53,6 +53,9 @@ pub async fn connect(acc: &Account, password: &str) -> Result<Session> {
 
 /// Checks a sign-in for either protocol.
 pub async fn check(acc: &Account, password: &str) -> Result<()> {
+    if acc.protocol == Protocol::Phonemail {
+        return crate::phonemail::check(acc, password).await;
+    }
     if acc.protocol == Protocol::Pop3 {
         return pop3::connect(acc, password).await;
     }
@@ -64,6 +67,12 @@ pub async fn check(acc: &Account, password: &str) -> Result<()> {
 pub(crate) fn pop(id: &str) -> Result<Option<Account>> {
     let acc = accounts::get(id)?;
     Ok((acc.protocol == Protocol::Pop3).then_some(acc))
+}
+
+/// PhoneMail accounts use PhoneMail's own interface (phonemail.rs) instead of IMAP.
+pub(crate) fn pm(id: &str) -> Result<Option<Account>> {
+    let acc = accounts::get(id)?;
+    Ok((acc.protocol == Protocol::Phonemail).then_some(acc))
 }
 
 const POP_ONLY_INBOX: &str = "POP3 accounts have only the inbox - switch the account to IMAP to use folders";
@@ -92,6 +101,9 @@ impl Pool {
     }
 
     pub async fn folders(&self, id: &str) -> Result<Vec<Folder>> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::folders(&acc).await;
+        }
         if pop(id)?.is_some() {
             return Ok(vec![Folder { name: "INBOX".into(), role: "inbox".into(), delimiter: "/".into() }]);
         }
@@ -129,6 +141,10 @@ impl Pool {
 
     /// Newest-first page of a folder. `before` is the count already shown.
     pub async fn messages(&self, id: &str, folder: &str, before: u32, limit: u32) -> Result<(Vec<Summary>, u32)> {
+        if let Some(acc) = pm(id)? {
+            let _ = limit;
+            return crate::phonemail::messages(&acc, folder, before).await;
+        }
         if let Some(acc) = pop(id)? {
             let (mut items, total) = pop3::messages(&acc, before, limit).await?;
             items.reverse();
@@ -154,6 +170,10 @@ impl Pool {
     }
 
     pub async fn search(&self, id: &str, folder: &str, query: &str) -> Result<Vec<Summary>> {
+        if let Some(acc) = pm(id)? {
+            let _ = folder;
+            return crate::phonemail::search(&acc, query).await;
+        }
         if let Some(acc) = pop(id)? {
             let mut items = pop3::search(&acc, query).await?;
             items.reverse();
@@ -194,6 +214,9 @@ impl Pool {
     }
 
     pub async fn set_flag(&self, id: &str, folder: &str, uid: u32, flag: &str, on: bool) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::set_flag(&acc, folder, uid, flag, on).await;
+        }
         if let Some(acc) = pop(id)? {
             return pop3::set_flag(&acc, uid, flag, on);
         }
@@ -206,6 +229,9 @@ impl Pool {
     }
 
     pub async fn move_to(&self, id: &str, folder: &str, uid: u32, target: &str) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::move_to(&acc, folder, uid, target).await;
+        }
         if pop(id)?.is_some() {
             return Err(anyhow!(POP_ONLY_INBOX));
         }
@@ -223,6 +249,9 @@ impl Pool {
 
     /// Permanently removes a message (used when it is already in Trash).
     pub async fn destroy(&self, id: &str, folder: &str, uid: u32) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::destroy(&acc, folder, uid).await;
+        }
         if let Some(acc) = pop(id)? {
             return pop3::delete(&acc, uid).await;
         }
@@ -242,6 +271,9 @@ impl Pool {
     }
 
     pub async fn unread_count(&self, id: &str, folder: &str) -> Result<u32> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::unread(&acc, folder).await;
+        }
         if let Some(acc) = pop(id)? {
             return Ok(pop3::unread(&acc));
         }
@@ -300,6 +332,9 @@ fn one_per_role(found: Vec<(Folder, bool)>) -> Vec<Folder> {
 
 impl Pool {
     pub async fn create_folder(&self, id: &str, name: &str) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::create_folder(&acc, name).await;
+        }
         if pop(id)?.is_some() {
             return Err(anyhow!(POP_ONLY_INBOX));
         }
@@ -311,6 +346,9 @@ impl Pool {
     }
 
     pub async fn rename_folder(&self, id: &str, from: &str, to: &str) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::rename_folder(&acc, from, to).await;
+        }
         if pop(id)?.is_some() {
             return Err(anyhow!(POP_ONLY_INBOX));
         }
@@ -324,6 +362,9 @@ impl Pool {
 
     /// Deletes a folder and everything in it.
     pub async fn delete_folder(&self, id: &str, name: &str) -> Result<()> {
+        if let Some(acc) = pm(id)? {
+            return crate::phonemail::delete_folder(&acc, name).await;
+        }
         if pop(id)?.is_some() {
             return Err(anyhow!(POP_ONLY_INBOX));
         }
