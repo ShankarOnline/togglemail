@@ -46,6 +46,22 @@ It works with any IMAP, POP3 and SMTP mail service - a free family project by To
 | Ubuntu, Pop!_OS (incl. COSMIC), Debian, Mint | `.deb` — `sudo apt install ./ToggleMail_*.deb` |
 | Fedora, openSUSE, RHEL | `.rpm` — `sudo dnf install ./ToggleMail-*.rpm` |
 | Any other Linux | `.AppImage` — `chmod +x` and run |
+| Linux with Flatpak (x86_64) | `.flatpak` — see below |
+| Linux with Snap (amd64, arm64) | `sudo snap install togglemail` |
+
+### Flatpak
+
+ToggleMail is not on Flathub yet. The `.flatpak` file in each release installs it directly; it runs
+on the GNOME 49 runtime, which comes from Flathub:
+
+```
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --user ToggleMail_0.1.2_x86_64.flatpak
+flatpak run com.toggleminds.togglemail
+```
+
+A bundle does not update by itself: install the next release's `.flatpak` the same way to update.
+To remove it: `flatpak uninstall --user com.toggleminds.togglemail`.
 
 GitHub Actions (`.github/workflows/build.yml`) builds all of them on every push; a `v*` tag
 also makes a draft release with the files attached. Linux builds run on Ubuntu 22.04 so they work on
