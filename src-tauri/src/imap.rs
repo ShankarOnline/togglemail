@@ -10,7 +10,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tokio_native_tls::TlsStream;
+use crate::net::TlsStream;
 
 pub type Session = async_imap::Session<TlsStream<TcpStream>>;
 

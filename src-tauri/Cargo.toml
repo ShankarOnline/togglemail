@@ -22,14 +22,15 @@ serde_json = "1"
 tokio = { version = "1", features = ["net", "sync", "time", "rt-multi-thread", "macros"] }
 futures = "0.3"
 async-imap = { version = "0.10", default-features = false, features = ["runtime-tokio"] }
-native-tls = "0.2"
-tokio-native-tls = "0.3"
-lettre = { version = "0.11", default-features = false, features = ["builder", "hostname", "smtp-transport", "tokio1", "tokio1-native-tls"] }
+lettre = { version = "0.11", default-features = false, features = ["builder", "hostname", "smtp-transport", "tokio1", "tokio1-rustls", "ring", "webpki-roots"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"] }
+webpki-roots = "0.26"
 mail-parser = "0.11"
 ammonia = "4"
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
 dirs = "6"
 base64 = "0.22"
 anyhow = "1"
-reqwest = { version = "0.12", default-features = false, features = ["native-tls", "json"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-webpki-roots", "json"] }
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
