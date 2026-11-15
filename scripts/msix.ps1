@@ -1,11 +1,11 @@
 # Builds the Microsoft Store package (MSIX) from the Windows release build.
-#   .\scripts\msix.ps1 -IdentityName <Package/Identity/Name> -Publisher "CN=..." -PublisherName "<Publisher display name>"
-# The three values are on Partner Center > ToggleMail > Product management > Product identity.
+#   .\scripts\msix.ps1            (then upload build\msix\*.msix in Partner Center)
+# The identity is ToggleMail's on Partner Center > ToggleMail (Store ID 9NJL9MLVKLLS) > Product identity.
 # The Store signs the package itself when it publishes it, so this one stays unsigned.
 param(
-    [Parameter(Mandatory)] [string] $IdentityName,
-    [Parameter(Mandatory)] [string] $Publisher,
-    [Parameter(Mandatory)] [string] $PublisherName,
+    [string] $IdentityName = 'ToggleMinds.ToggleMail',
+    [string] $Publisher = 'CN=0C702691-0CEE-4DD9-8342-75E7062174BA',
+    [string] $PublisherName = 'ToggleMinds',
     [switch] $NoBuild
 )
 $ErrorActionPreference = 'Stop'
