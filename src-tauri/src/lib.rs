@@ -7,6 +7,7 @@ mod password;
 mod pop3;
 mod schedule;
 mod smtp;
+mod watch;
 
 use accounts::{Account, Protocol, Provider, Security, ServerSettings};
 use imap::{Folder, Pool};
@@ -330,6 +331,7 @@ pub fn run() {
                     accounts::set_data_dir(dir);
                 }
             }
+            watch::start(app.handle());
             let _ = app;
             Ok(())
         })
