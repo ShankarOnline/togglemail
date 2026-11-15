@@ -97,6 +97,15 @@ async function loadAccounts() {
   state.accounts = await invoke('list_accounts');
   $('#compose-btn').disabled = state.accounts.length === 0;
   $('#reader-empty').querySelector('p').hidden = state.accounts.length > 0;
+  if (!state.accounts.length) {
+    // First run (on a phone the reading pane with its welcome text is hidden): invite to add an account.
+    $('#list-title').textContent = 'Welcome to ToggleMail';
+    $('#messages').innerHTML = `<li class="placeholder welcome">
+      <img src="logo.svg" alt="" width="72" height="72">
+      <p>All your email in one place: Gmail, Outlook, iCloud, Yahoo, PhoneMail and your own domain.</p>
+      <button type="button" class="primary" id="welcome-add">Add your first account</button></li>`;
+    $('#welcome-add').onclick = () => openAccountForm();
+  }
   renderSidebar();
   await Promise.all(state.accounts.map((a) => loadFolders(a.id)));
   if (!state.account && state.accounts.length) {

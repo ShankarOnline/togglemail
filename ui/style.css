@@ -191,6 +191,10 @@ input:focus, select:focus, textarea:focus, #editor:focus { outline: 2px solid va
 #messages .flag { color: #e0a100; }
 #messages .placeholder { color: var(--muted); cursor: default; text-align: center; padding: 30px 12px; border-left: none; }
 #more-btn { margin: 6px; }
+#messages .welcome { display: grid; justify-items: center; gap: 12px; padding: 48px 24px; }
+#messages .welcome img { border-radius: 16px; }
+#messages .welcome p { margin: 0; max-width: 30ch; line-height: 1.5; }
+#messages .welcome button { padding: 10px 18px; }
 
 /* View menu */
 .view-wrap { position: relative; }
