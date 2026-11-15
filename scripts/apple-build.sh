@@ -17,6 +17,9 @@ export API_PRIVATE_KEYS_DIR=~/.appstoreconnect/private_keys
 export LANG=en_US.UTF-8
 [ -f ~/.cargo/env ] && . ~/.cargo/env
 export PATH=/opt/homebrew/bin:$PATH
+# Every upload needs a higher build number than the last: the time of the build, e.g. 2611161430.
+BUILD=${BUILD:-$(date +%y%m%d%H%M)}
+echo "Build number $BUILD"
 upload() { # $1 = macos|ios, $2 = file
   xcrun altool --upload-app --type "$1" --file "$2" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER"
 }
@@ -26,11 +29,15 @@ case "${1:-}" in
     [ -f ../ToggleMail_Mac_App_Store.provisionprofile ] || { echo "Missing ../ToggleMail_Mac_App_Store.provisionprofile"; exit 1; }
     rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
     APPLE_SIGNING_IDENTITY="Apple Distribution" \
-      cargo tauri build --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json
+      cargo tauri build --bundles app --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json \
+      --config "{\"bundle\":{\"macOS\":{\"bundleVersion\":\"$BUILD\"}}}"
     app=src-tauri/target/universal-apple-darwin/release/bundle/macos/ToggleMail.app
     pkg=src-tauri/target/universal-apple-darwin/release/bundle/ToggleMail.pkg
     codesign --verify --deep --strict "$app"
-    codesign -d --entitlements - "$app" | grep -q app-sandbox || { echo "Not sandboxed: check tauri.appstore.conf.json"; exit 1; }
+    for e in app-sandbox application-identifier; do
+      codesign -d --entitlements - "$app" 2>/dev/null | grep -q "$e" || { echo "Missing entitlement $e: check tauri.appstore.conf.json"; exit 1; }
+    done
+    [ "$(defaults read "$PWD/$app/Contents/Info" CFBundleVersion)" = "$BUILD" ] || { echo "Build number not set"; exit 1; }
     xcrun productbuild --sign "3rd Party Mac Developer Installer" --component "$app" /Applications "$pkg"
     upload macos "$pkg" ;;
   ios)
@@ -64,7 +71,7 @@ EOF
     # Signed with the Apple Distribution certificate in the login keychain and the two App Store profiles
     # (made with the App Store Connect API; the API key can't use Xcode's cloud signing).
     xcodebuild archive -project src-tauri/gen/apple/togglemail.xcodeproj -scheme togglemail_iOS -configuration release \
-      -destination generic/platform=iOS -archivePath "$out/ToggleMail.xcarchive" TOGGLEMAIL_RUST_PREBUILT=1 \
+      -destination generic/platform=iOS -archivePath "$out/ToggleMail.xcarchive" TOGGLEMAIL_RUST_PREBUILT=1 CURRENT_PROJECT_VERSION="$BUILD" \
       CODE_SIGNING_ALLOWED=NO -quiet
     xcodebuild -exportArchive -archivePath "$out/ToggleMail.xcarchive" -exportOptionsPlist "$out/ExportOptions.plist" \
       -exportPath "$out" -quiet

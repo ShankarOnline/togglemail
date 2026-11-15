@@ -4,6 +4,11 @@
      The direct-download .dmg is not sandboxed and does not use this file. -->
 <plist version="1.0">
 <dict>
+    <!-- Name the app and team, as in the provisioning profile; TestFlight for Mac refuses builds without them. -->
+    <key>com.apple.application-identifier</key>
+    <string>RAKS7AXSK2.com.toggleminds.togglemail</string>
+    <key>com.apple.developer.team-identifier</key>
+    <string>RAKS7AXSK2</string>
     <key>com.apple.security.app-sandbox</key>
     <true/>
     <!-- IMAP, POP3, SMTP and the PhoneMail api. -->
