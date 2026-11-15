@@ -237,13 +237,67 @@ pub fn settings_for(email: &str, provider_id: &str, protocol: Protocol) -> Serve
     }
 }
 
+/// Phones have no usual config folder: the app's own data folder is set at start-up.
+static DATA_DIR: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+
+#[allow(dead_code)] // called at start-up on phones only
+pub fn set_data_dir(dir: PathBuf) {
+    let _ = DATA_DIR.set(dir);
+}
+
+/// The system keychain. Android has none, so there passwords live only in the app's private storage.
+#[cfg(not(target_os = "android"))]
+mod keychain {
+    use anyhow::Result;
+
+    pub fn set(service: &str, id: &str, password: &str) -> Result<()> {
+        Ok(keyring::Entry::new(service, id)?.set_password(password)?)
+    }
+
+    pub fn get(service: &str, id: &str) -> Result<String> {
+        Ok(keyring::Entry::new(service, id)?.get_password()?)
+    }
+
+    pub fn delete(service: &str, id: &str) {
+        if let Ok(entry) = keyring::Entry::new(service, id) {
+            let _ = entry.delete_credential();
+        }
+    }
+}
+
+#[cfg(target_os = "android")]
+mod keychain {
+    use anyhow::{anyhow, Result};
+
+    pub fn set(_: &str, _: &str, _: &str) -> Result<()> {
+        Err(anyhow!("no system keychain on Android"))
+    }
+
+    pub fn get(_: &str, _: &str) -> Result<String> {
+        Err(anyhow!("no system keychain on Android"))
+    }
+
+    pub fn delete(_: &str, _: &str) {}
+}
+
 fn data_dir() -> Result<PathBuf> {
+    if let Some(dir) = DATA_DIR.get() {
+        std::fs::create_dir_all(dir)?;
+        return Ok(dir.clone());
+    }
     let base = dirs::config_dir().ok_or_else(|| anyhow!("no config folder"))?;
     let dir = base.join("togglemail");
     let old = base.join(OLD_DIR);
     if !dir.exists() && old.exists() {
         let _ = std::fs::rename(&old, &dir);
     }
+    std::fs::create_dir_all(&dir)?;
+    Ok(dir)
+}
+
+/// Where attachments are saved when there is no Downloads folder (phones).
+pub fn attachments_dir() -> Result<PathBuf> {
+    let dir = data_dir()?.join("Attachments");
     std::fs::create_dir_all(&dir)?;
     Ok(dir)
 }
@@ -281,8 +335,8 @@ pub fn get(id: &str) -> Result<Account> {
     load()?.into_iter().find(|a| a.id == id).ok_or_else(|| anyhow!("account not found"))
 }
 
-/// Linux and BSD desktops without a keychain service (some COSMIC and minimal setups) fall back to a file
-/// readable only by the user, in the app's config folder.
+/// Linux and BSD desktops without a keychain service (some COSMIC and minimal setups), and Android,
+/// fall back to a file readable only by the user, in the app's own folder.
 #[cfg(all(unix, not(target_os = "macos")))]
 fn fallback_file(id: &str) -> Result<PathBuf> {
     let dir = data_dir()?.join("secrets");
@@ -293,7 +347,7 @@ fn fallback_file(id: &str) -> Result<PathBuf> {
 }
 
 fn store_password(id: &str, password: &str) -> Result<()> {
-    let saved = keyring::Entry::new(KEYRING_SERVICE, id).and_then(|e| e.set_password(password));
+    let saved = keychain::set(KEYRING_SERVICE, id, password);
     #[cfg(all(unix, not(target_os = "macos")))]
     if saved.is_err() {
         use std::io::Write;
@@ -327,9 +381,7 @@ pub fn remove(id: &str) -> Result<()> {
     let mut all = load()?;
     all.retain(|a| a.id != id);
     save_all(&all)?;
-    if let Ok(entry) = keyring::Entry::new(KEYRING_SERVICE, id) {
-        let _ = entry.delete_credential();
-    }
+    keychain::delete(KEYRING_SERVICE, id);
     #[cfg(all(unix, not(target_os = "macos")))]
     if let Ok(path) = fallback_file(id) {
         let _ = std::fs::remove_file(path);
@@ -343,16 +395,14 @@ pub fn remove(id: &str) -> Result<()> {
 }
 
 pub fn password(id: &str) -> Result<String> {
-    let mut found = keyring::Entry::new(KEYRING_SERVICE, id).and_then(|e| e.get_password());
+    let mut found = keychain::get(KEYRING_SERVICE, id);
     if found.is_err() {
         // Saved before the rename: move it to the new name.
-        if let Ok(old) = keyring::Entry::new(OLD_KEYRING_SERVICE, id) {
-            if let Ok(pw) = old.get_password() {
-                if store_password(id, &pw).is_ok() {
-                    let _ = old.delete_credential();
-                }
-                found = Ok(pw);
+        if let Ok(pw) = keychain::get(OLD_KEYRING_SERVICE, id) {
+            if store_password(id, &pw).is_ok() {
+                keychain::delete(OLD_KEYRING_SERVICE, id);
             }
+            found = Ok(pw);
         }
     }
     #[cfg(all(unix, not(target_os = "macos")))]

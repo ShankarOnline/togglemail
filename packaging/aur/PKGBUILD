@@ -13,8 +13,8 @@ provides=('togglemail')
 conflicts=('togglemail')
 source_x86_64=("https://github.com/ShankarOnline/togglemail/releases/download/v${pkgver}/ToggleMail_${pkgver}_amd64.deb")
 source_aarch64=("https://github.com/ShankarOnline/togglemail/releases/download/v${pkgver}/ToggleMail_${pkgver}_arm64.deb")
-sha256sums_x86_64=('SKIP_FILLED_ON_RELEASE')
-sha256sums_aarch64=('SKIP_FILLED_ON_RELEASE')
+sha256sums_x86_64=('39f5419c41544c2086a4278d36ae56498946065cdc7d9fbe115a6f89c9c4bdd0')
+sha256sums_aarch64=('12943b160d1f35162bb6ff749dca76a9801d008e44a44db0d68bbab2ec3c62dc')
 
 package() {
   bsdtar -xf data.tar.gz -C "$pkgdir"

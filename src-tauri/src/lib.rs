@@ -158,7 +158,11 @@ async fn save_attachment(pool: State<'_, Pool>, account: String, folder: String,
             parse::attachment(&raw, index).ok_or("attachment not found")?
         }
     };
-    let dir = dirs::download_dir().or_else(dirs::home_dir).ok_or("no Downloads folder")?;
+    // Phones have no Downloads folder here: files go to the app's own "Attachments" folder.
+    let dir = match dirs::download_dir().or_else(dirs::home_dir) {
+        Some(d) => d,
+        None => accounts::attachments_dir().map_err(err)?,
+    };
     let safe: String = name.chars().map(|c| if "/\\:*?\"<>|".contains(c) || c.is_control() { '_' } else { c }).collect();
     let safe = if safe.trim().is_empty() { "attachment".to_string() } else { safe };
     let (stem, ext) = match safe.rsplit_once('.') {
@@ -313,6 +317,18 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(Pool::default())
+        .setup(|app| {
+            // Phones: settings, state and (on Android) passwords live in the app's own data folder.
+            #[cfg(mobile)]
+            {
+                use tauri::Manager;
+                if let Ok(dir) = app.path().app_data_dir() {
+                    accounts::set_data_dir(dir);
+                }
+            }
+            let _ = app;
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             list_accounts,
             providers,

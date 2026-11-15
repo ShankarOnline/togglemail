@@ -89,3 +89,11 @@ app stores ([COPYING.md](COPYING.md), full text in [LICENSE](LICENSE)). Contribu
 see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ToggleMail is a free family project by [Toggle Minds](https://toggleminds.com/).
+
+## How it is made
+
+ToggleMail is built with the help of an AI coding assistant (Anthropic's Claude), working under the
+direction of Shankar Raj, who decides what it does, reviews the changes and maintains the project.
+Commits written with the assistant carry a `Co-Authored-By: Claude` line, so the history shows which
+parts came from it. Contributions from people are welcome in the same way as any other project — see
+[CONTRIBUTING.md](CONTRIBUTING.md).

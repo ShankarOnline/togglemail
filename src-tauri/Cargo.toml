@@ -28,9 +28,19 @@ tokio-rustls = { version = "0.26", default-features = false, features = ["ring",
 webpki-roots = "0.26"
 mail-parser = "0.11"
 ammonia = "4"
-keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
 dirs = "6"
 base64 = "0.22"
 anyhow = "1"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-webpki-roots", "json"] }
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+
+# System keychains: Windows Credential Manager, Apple Keychain (macOS and iOS), Secret Service on
+# Linux and BSD. Android has none (accounts.rs keeps passwords in the app's private storage).
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+
+[target.'cfg(all(unix, not(any(target_os = "macos", target_os = "ios", target_os = "android"))))'.dependencies]
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }

@@ -1,0 +1,24 @@
+pkgbase = togglemail-bin
+	pkgdesc = All your email accounts in one window: Gmail, Outlook, iCloud, PhoneMail and any IMAP/POP3/SMTP account
+	pkgver = 0.1.2
+	pkgrel = 1
+	url = https://toggleminds.com/togglemail/
+	arch = x86_64
+	arch = aarch64
+	license = GPL-3.0-or-later
+	depends = webkit2gtk-4.1
+	depends = gtk3
+	depends = libsoup3
+	depends = openssl
+	depends = dbus
+	depends = hicolor-icon-theme
+	optdepends = gnome-keyring: keep account passwords in the system keyring
+	optdepends = kwallet: keep account passwords in KWallet
+	provides = togglemail
+	conflicts = togglemail
+	source_x86_64 = https://github.com/ShankarOnline/togglemail/releases/download/v0.1.2/ToggleMail_0.1.2_amd64.deb
+	sha256sums_x86_64 = 39f5419c41544c2086a4278d36ae56498946065cdc7d9fbe115a6f89c9c4bdd0
+	source_aarch64 = https://github.com/ShankarOnline/togglemail/releases/download/v0.1.2/ToggleMail_0.1.2_arm64.deb
+	sha256sums_aarch64 = 12943b160d1f35162bb6ff749dca76a9801d008e44a44db0d68bbab2ec3c62dc
+
+pkgname = togglemail-bin
