@@ -91,3 +91,17 @@ jobs:
           name: installers-freebsd
           path: dist/ToggleMail-freebsd-amd64.tar.gz
           if-no-files-found: ignore
+
+  # Ubuntu App Centre (Snap Store). The .snap is kept as an artifact; uploading it to the store
+  # (snapcraft upload --release=edge) is done with the owner's own Snap Store login.
+  snap:
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installers-snap
+          path: ${{ steps.snapcraft.outputs.snap }}

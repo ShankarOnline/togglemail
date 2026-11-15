@@ -1,0 +1,70 @@
+name: togglemail
+base: core22
+version: '0.1.0'
+title: ToggleMail
+summary: Email for any IMAP, POP3 or SMTP account
+description: |
+  ToggleMail is a desktop email app for any mail service: Gmail, Outlook, Yahoo, iCloud,
+  Zoho, Proton (through Proton Mail Bridge), Fastmail-style hosts and your own domain.
+
+  - Several accounts side by side, with folders, unread counts and search
+  - HTML mail shown safely: scripts removed, pictures from the internet only when you allow them
+  - HTML compose with attachments, signatures, scheduled sending and snoozing
+  - Reading pane on the right, at the bottom or off; navigation collapsed to icons
+  - Passwords kept in the system keyring
+
+  A free family project by Toggle Minds.
+grade: stable
+confinement: strict
+license: Proprietary
+contact: mailto:shankar@toggleminds.com
+website: https://toggleminds.com/
+icon: src-tauri/icons/128x128@2x.png
+
+# WebKitGTK looks for its helper processes here.
+layout:
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1
+
+apps:
+  togglemail:
+    command: usr/bin/togglemail
+    desktop: usr/share/applications/ToggleMail.desktop
+    extensions: [gnome]
+    plugs:
+      - network
+      - home                     # attachments are saved to ~/Downloads
+      - password-manager-service # passwords in GNOME Keyring / KWallet
+    environment:
+      # Blank windows on some GPU drivers under Wayland (COSMIC, GNOME); the app sets it too.
+      WEBKIT_DISABLE_DMABUF_RENDERER: "1"
+
+parts:
+  togglemail:
+    plugin: dump
+    source: .
+    build-snaps:
+      - rustup
+    build-packages:
+      - build-essential
+      - curl
+      - file
+      - pkg-config
+      - libwebkit2gtk-4.1-dev
+      - libgtk-3-dev
+      - librsvg2-dev
+      - libssl-dev
+      - libdbus-1-dev
+      - dpkg
+    stage-packages:
+      - libwebkit2gtk-4.1-0
+    override-build: |
+      set -eu
+      rustup default stable
+      cargo install tauri-cli --version "^2" --locked
+      cd src-tauri
+      cargo tauri build --bundles deb
+      dpkg -x target/release/bundle/deb/*.deb "$SNAPCRAFT_PART_INSTALL/"
+      # The .deb names the icon by theme; point the launcher at the file inside the snap.
+      sed -i -e 's|^Icon=.*|Icon=${SNAP}/usr/share/icons/hicolor/128x128/apps/togglemail.png|' \
+        "$SNAPCRAFT_PART_INSTALL/usr/share/applications/ToggleMail.desktop"
