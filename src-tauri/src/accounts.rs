@@ -297,6 +297,10 @@ fn data_dir() -> Result<PathBuf> {
 
 /// Where attachments are saved when there is no Downloads folder (phones).
 pub fn attachments_dir() -> Result<PathBuf> {
+    // iOS: the app's Documents folder, which the Files app shows (with UIFileSharingEnabled in gen/apple's Info.plist).
+    #[cfg(target_os = "ios")]
+    let dir = dirs::home_dir().ok_or_else(|| anyhow!("no home folder"))?.join("Documents").join("Attachments");
+    #[cfg(not(target_os = "ios"))]
     let dir = data_dir()?.join("Attachments");
     std::fs::create_dir_all(&dir)?;
     Ok(dir)

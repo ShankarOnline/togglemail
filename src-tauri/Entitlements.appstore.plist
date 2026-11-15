@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Mac App Store build only (tauri.appstore.conf.json): the App Sandbox, plus what ToggleMail needs inside it.
+     The direct-download .dmg is not sandboxed and does not use this file. -->
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <!-- IMAP, POP3, SMTP and the PhoneMail api. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- Saved attachments go to Downloads. -->
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+</dict>
+</plist>

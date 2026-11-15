@@ -158,7 +158,11 @@ async fn save_attachment(pool: State<'_, Pool>, account: String, folder: String,
             parse::attachment(&raw, index).ok_or("attachment not found")?
         }
     };
-    // Phones have no Downloads folder here: files go to the app's own "Attachments" folder.
+    // Phones have no Downloads folder here (and an iPhone app can't write to its home folder): files go to the
+    // app's own "Attachments" folder (on iOS in Documents, so the Files app shows it under ToggleMail).
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    let dir = accounts::attachments_dir().map_err(err)?;
+    #[cfg(not(any(target_os = "ios", target_os = "android")))]
     let dir = match dirs::download_dir().or_else(dirs::home_dir) {
         Some(d) => d,
         None => accounts::attachments_dir().map_err(err)?,
