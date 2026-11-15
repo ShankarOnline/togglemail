@@ -3,6 +3,8 @@ name = "togglemail"
 version = "0.1.2"
 description = "ToggleMail - a desktop email app for any IMAP, POP3 and SMTP service"
 authors = ["Shankar Raj"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/ShankarOnline/togglemail"
 edition = "2021"
 
 [lib]

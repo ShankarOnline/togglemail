@@ -16,7 +16,7 @@ description: |
   A free family project by Toggle Minds.
 grade: stable
 confinement: strict
-license: Proprietary
+license: GPL-3.0-or-later
 contact: mailto:shankar@toggleminds.com
 website: https://toggleminds.com/
 icon: src-tauri/icons/128x128@2x.png

@@ -81,3 +81,11 @@ src-tauri/src/
   smtp.rs            building and sending (lettre)
   parse.rs           MIME parsing (mail-parser) and HTML sanitising (ammonia)
 ```
+
+## Open source
+
+ToggleMail is free and open source: GNU GPL version 3 or later, with an additional permission for
+app stores ([COPYING.md](COPYING.md), full text in [LICENSE](LICENSE)). Contributions are welcome —
+see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+ToggleMail is a free family project by [Toggle Minds](https://toggleminds.com/).
