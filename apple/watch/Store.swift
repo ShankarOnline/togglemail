@@ -40,6 +40,10 @@ final class Store: NSObject, ObservableObject, WCSessionDelegate {
 
     override init() {
         super.init()
+        if Demo.screen != nil {
+            snapshot = Demo.snapshot
+            return
+        }
         if let data = UserDefaults.standard.data(forKey: Self.saved) {
             snapshot = try? JSONDecoder().decode(Snapshot.self, from: data)
         }
@@ -76,6 +80,7 @@ final class Store: NSObject, ObservableObject, WCSessionDelegate {
 
     /// Something to do on the iPhone: now if it is in reach, else as soon as it is.
     private func tell(_ request: [String: Any]) {
+        if Demo.screen != nil { return }
         Task {
             if (try? await ask(request)) != nil { return }
             if let data = try? JSONSerialization.data(withJSONObject: request), let json = String(data: data, encoding: .utf8) {
@@ -85,6 +90,7 @@ final class Store: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     func refresh() async {
+        if Demo.screen != nil { return }
         refreshing = true
         defer { refreshing = false }
         if let answer = try? await ask(["op": "refresh"]),
@@ -94,6 +100,7 @@ final class Store: NSObject, ObservableObject, WCSessionDelegate {
     }
 
     func body(account: String, uid: UInt32) async throws -> String {
+        if Demo.screen != nil { return Demo.body }
         let answer = try await ask(["op": "open", "account": account, "uid": uid])
         change(account, uid) { $0.seen = true }
         return answer["body"] as? String ?? ""

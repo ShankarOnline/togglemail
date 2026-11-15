@@ -90,6 +90,7 @@ struct InboxView: View {
         }
         .navigationTitle(inbox?.name ?? "Inbox")
         .navigationDestination(for: Item.self) { MessageView(account: account, item: $0) }
+        .navigationDestination(for: ReplyTarget.self) { ReplyView(account: $0.account, item: $0.item) }
     }
 }
 
