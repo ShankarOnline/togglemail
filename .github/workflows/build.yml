@@ -71,7 +71,6 @@ jobs:
   # as a .tar.gz (needs: pkg install webkit2-gtk_41 gtk3 librsvg2-rust dbus gnome-keyring).
   freebsd:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: vmactions/freebsd-vm@v1
@@ -96,7 +95,7 @@ jobs:
         with:
           name: installers-freebsd
           path: dist/ToggleMail-freebsd-amd64.tar.gz
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   # Ubuntu App Centre (Snap Store). The .snap is kept as an artifact; uploading it to the store
   # (snapcraft upload --release=edge) is done with the owner's own Snap Store login.
@@ -107,7 +106,6 @@ jobs:
         # amd64 PCs, and arm64 for Raspberry Pi 4/5 and other ARM boards.
         runner: [ubuntu-22.04, ubuntu-22.04-arm]
     runs-on: ${{ matrix.runner }}
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: snapcore/action-build@v1
@@ -117,15 +115,28 @@ jobs:
           name: installers-snap-${{ matrix.runner }}
           path: ${{ steps.snapcraft.outputs.snap }}
 
-  # Flathub (GNOME Software): builds the Flatpak the way Flathub does, offline from cargo-sources.json.
+  # The .flatpak bundle offered on GitHub releases and toggleminds.com (not Flathub), built offline
+  # from cargo-sources.json.
   flatpak:
     runs-on: ubuntu-latest
-    continue-on-error: true
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
       options: --privileged
     steps:
       - uses: actions/checkout@v4
+      # The offline build needs every crate in Cargo.lock listed in cargo-sources.json. Say which are
+      # missing up front, instead of a "no matching package" error deep in the build.
+      - name: cargo-sources.json matches Cargo.lock
+        run: |
+          missing=$(awk '/^\[\[package\]\]/{n="";v="";r=0} /^name = /{n=$3} /^version = /{v=$3} /^source = "registry/{r=1}
+                         r && n && v {gsub(/"/,"",n); gsub(/"/,"",v); print n"-"v".crate"; r=0}' src-tauri/Cargo.lock |
+                    while read -r crate; do grep -q "/$crate\"" packaging/flatpak/cargo-sources.json || echo "$crate"; done)
+          if [ -n "$missing" ]; then
+            echo "::error::packaging/flatpak/cargo-sources.json is out of date. Regenerate it with flatpak-cargo-generator.py from src-tauri/Cargo.lock. Missing:"
+            echo "$missing"
+            exit 1
+          fi
+          echo "All $(grep -c '^\[\[package\]\]' src-tauri/Cargo.lock) packages in Cargo.lock are covered."
       - uses: flathub-infra/flatpak-github-actions/flatpak-builder@master
         with:
           bundle: togglemail.flatpak
