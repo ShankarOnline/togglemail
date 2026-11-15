@@ -80,8 +80,8 @@ const fn p(
 
 pub fn providers() -> Vec<Provider> {
     vec![
-        p("ours", "Shankars / Jai Aditya / KNKOA / Toggle Minds / PhoneMail",
-          &["shankars.org", "jaiaditya.org", "knkoa.org", "toggleminds.com", "phonemail.net"],
+        p("ours", "Shankars / Jai Aditya / KNKOA / Toggle Minds",
+          &["shankars.org", "jaiaditya.org", "knkoa.org", "toggleminds.com"],
           Some(("mail.jaiaditya.org", 993, T)), None, Some(("mail.jaiaditya.org", 587, S)), ""),
         p("gmail", "Gmail", &["gmail.com", "googlemail.com"],
           Some(("imap.gmail.com", 993, T)), Some(("pop.gmail.com", 995, T)), Some(("smtp.gmail.com", 587, S)),

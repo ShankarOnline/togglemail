@@ -254,15 +254,48 @@ impl Pool {
 
 async fn list(s: &mut Session) -> Result<Vec<Folder>> {
     let names: Vec<_> = s.list(Some(""), Some("*")).await?.try_collect().await?;
-    Ok(names
+    let found: Vec<(Folder, bool)> = names
         .iter()
         .filter(|n| !n.attributes().iter().any(|a| matches!(a, NameAttribute::NoSelect)))
-        .map(|n| Folder {
-            name: n.name().to_string(),
-            role: role(n.name(), n.attributes()),
-            delimiter: n.delimiter().unwrap_or("/").to_string(),
+        .map(|n| {
+            let marked = special_use(n.attributes()).is_some();
+            let folder = Folder {
+                name: n.name().to_string(),
+                role: role(n.name(), n.attributes()),
+                delimiter: n.delimiter().unwrap_or("/").to_string(),
+            };
+            (folder, marked)
         })
-        .collect())
+        .collect();
+    Ok(one_per_role(found))
+}
+
+/// Mailboxes sometimes hold two folders for one job (iCloud's "Sent Messages" beside an old "Sent").
+/// Only one keeps the role, preferring the one the server marks as special-use; the others stay as
+/// ordinary folders under their own names.
+fn one_per_role(found: Vec<(Folder, bool)>) -> Vec<Folder> {
+    let mut chosen: HashMap<String, usize> = HashMap::new();
+    for (i, (f, marked)) in found.iter().enumerate() {
+        if f.role.is_empty() {
+            continue;
+        }
+        match chosen.get(&f.role) {
+            Some(&j) if found[j].1 || !*marked => {}
+            _ => {
+                chosen.insert(f.role.clone(), i);
+            }
+        }
+    }
+    found
+        .into_iter()
+        .enumerate()
+        .map(|(i, (mut f, _))| {
+            if !f.role.is_empty() && chosen.get(&f.role) != Some(&i) {
+                f.role.clear();
+            }
+            f
+        })
+        .collect()
 }
 
 impl Pool {
@@ -322,16 +355,19 @@ fn flag_name(debug: String) -> String {
     }
 }
 
+fn special_use(attrs: &[NameAttribute]) -> Option<&'static str> {
+    attrs.iter().find_map(|a| match a {
+        NameAttribute::Sent => Some("sent"),
+        NameAttribute::Drafts => Some("drafts"),
+        NameAttribute::Trash => Some("trash"),
+        NameAttribute::Junk => Some("junk"),
+        NameAttribute::Archive => Some("archive"),
+        _ => None,
+    })
+}
+
 fn role(name: &str, attrs: &[NameAttribute]) -> String {
-    for a in attrs {
-        let r = match a {
-            NameAttribute::Sent => "sent",
-            NameAttribute::Drafts => "drafts",
-            NameAttribute::Trash => "trash",
-            NameAttribute::Junk => "junk",
-            NameAttribute::Archive => "archive",
-            _ => continue,
-        };
+    if let Some(r) = special_use(attrs) {
         return r.into();
     }
     let lower = name.to_lowercase();
@@ -348,4 +384,42 @@ fn role(name: &str, attrs: &[NameAttribute]) -> String {
         _ => "",
     }
     .into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn f(name: &str, role: &str) -> Folder {
+        Folder { name: name.into(), role: role.into(), delimiter: "/".into() }
+    }
+
+    #[test]
+    fn one_folder_per_role_prefers_the_marked_one() {
+        // iCloud: "Sent Messages" is marked \Sent; an old "Sent" is not.
+        let out = one_per_role(vec![
+            (f("INBOX", "inbox"), false),
+            (f("Sent", "sent"), false),
+            (f("Sent Messages", "sent"), true),
+            (f("Trash", "trash"), false),
+            (f("Deleted Messages", "trash"), true),
+            (f("Junk", "junk"), true),
+            (f("Spam", "junk"), false),
+        ]);
+        let role = |n: &str| out.iter().find(|x| x.name == n).unwrap().role.clone();
+        assert_eq!(role("Sent Messages"), "sent");
+        assert_eq!(role("Sent"), "");
+        assert_eq!(role("Deleted Messages"), "trash");
+        assert_eq!(role("Trash"), "");
+        assert_eq!(role("Junk"), "junk");
+        assert_eq!(role("Spam"), "");
+        assert_eq!(out.len(), 7, "no folder is hidden");
+    }
+
+    #[test]
+    fn without_marks_the_first_one_keeps_the_role() {
+        let out = one_per_role(vec![(f("Sent", "sent"), false), (f("Sent Items", "sent"), false)]);
+        assert_eq!(out[0].role, "sent");
+        assert_eq!(out[1].role, "");
+    }
 }
