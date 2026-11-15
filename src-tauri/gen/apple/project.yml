@@ -92,6 +92,8 @@ targets:
       - sdk: WebKit.framework
     preBuildScripts:
       - script: |
+          # scripts/apple-build.sh builds the Rust core itself and runs Xcode directly (for the watch app).
+          if [ "${TOGGLEMAIL_RUST_PREBUILT:-}" = 1 ]; then exit 0; fi
           cargo tauri ios xcode-script -v --platform "${PLATFORM_DISPLAY_NAME:?}" --sdk-root "${SDKROOT:?}" --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}" --header-search-paths "${HEADER_SEARCH_PATHS:?}" --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}" --configuration "${CONFIGURATION:?}" ${FORCE_COLOR} ${ARCHS:?}
         name: Build Rust Code
         basedOnDependencyAnalysis: false

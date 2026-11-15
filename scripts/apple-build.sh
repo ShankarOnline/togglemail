@@ -38,12 +38,32 @@ case "${1:-}" in
     [ -d src-tauri/gen/apple ] || cargo tauri ios init
     # Apple Watch: apple/watch is a target in gen/apple/project.yml, embedded in the iPhone app.
     (cd src-tauri/gen/apple && xcodegen generate)
+    # The Rust core is built here, as `cargo tauri ios build` would, and Xcode is run directly: tauri passes
+    # -sdk iphoneos to Xcode, which would build the embedded watch app for the iPhone too.
+    # A static library only: the watch functions it calls are in WatchBridge.swift, linked in by Xcode.
+    (cd src-tauri && cargo rustc --release --lib --crate-type staticlib --target aarch64-apple-ios --features tauri/custom-protocol)
+    mkdir -p src-tauri/gen/apple/Externals/arm64/release
+    cp src-tauri/target/aarch64-apple-ios/release/libtogglemail_lib.a src-tauri/gen/apple/Externals/arm64/release/libapp.a
+    out=$PWD/build/apple-ios
+    rm -rf "$out" && mkdir -p "$out"
+    cat > "$out/ExportOptions.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>teamID</key><string>$TEAM</string>
+  <key>uploadSymbols</key><true/>
+</dict></plist>
+EOF
     # Lets Xcode make the App Store profiles for the iPhone and watch apps itself.
-    APPLE_API_KEY=$ASC_KEY_ID APPLE_API_ISSUER=$ASC_ISSUER APPLE_API_KEY_PATH=$API_PRIVATE_KEYS_DIR/AuthKey_$ASC_KEY_ID.p8 \
-      cargo tauri ios build --export-method app-store-connect
-    ipa=$(find src-tauri/gen/apple/build -name '*.ipa' -newer src-tauri/gen/apple/project.yml | head -1)
-    [ -n "$ipa" ] || { echo "No .ipa was made"; exit 1; }
-    upload ios "$ipa" ;;
+    auth=(-allowProvisioningUpdates -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER"
+          -authenticationKeyPath "$API_PRIVATE_KEYS_DIR/AuthKey_$ASC_KEY_ID.p8")
+    xcodebuild archive -project src-tauri/gen/apple/togglemail.xcodeproj -scheme togglemail_iOS -configuration release \
+      -destination generic/platform=iOS -archivePath "$out/ToggleMail.xcarchive" TOGGLEMAIL_RUST_PREBUILT=1 "${auth[@]}" -quiet
+    xcodebuild -exportArchive -archivePath "$out/ToggleMail.xcarchive" -exportOptionsPlist "$out/ExportOptions.plist" \
+      -exportPath "$out" "${auth[@]}" -quiet
+    upload ios "$out/ToggleMail.ipa" ;;
   *)
     echo "Usage: bash scripts/apple-build.sh mac|ios"; exit 1 ;;
 esac
