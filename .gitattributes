@@ -1,0 +1,13 @@
+# Apple tools (codesign, plutil, xcodebuild) and shell scripts need Unix line endings, also when checked out
+# or archived on Windows.
+*.plist         text eol=lf
+*.entitlements  text eol=lf
+*.sh            text eol=lf
+*.swift         text eol=lf
+*.yml           text eol=lf
+*.pbxproj       text eol=lf
+*.xcscheme      text eol=lf
+*.storyboard    text eol=lf
+*.xcworkspacedata text eol=lf
+*.xcsettings    text eol=lf
+*.provisionprofile binary
