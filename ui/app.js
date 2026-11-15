@@ -58,10 +58,18 @@ function savePrefs() {
   startPolling();
 }
 
+// Phones and narrow windows: one screen at a time, folders in a slide-out menu.
+const phoneQuery = matchMedia('(max-width: 720px)');
+
 function applyView() {
   const app = $('#app');
   const reading = app.classList.contains('reading');
-  app.className = `pane-${view.pane} nav-${view.nav}${view.tint === 'plain' ? ' plain' : ''}${reading ? ' reading' : ''}`;
+  const phone = phoneQuery.matches;
+  // On a phone the reading pane is always "off" (list, then the email) and the menu shows names.
+  const pane = phone ? 'off' : view.pane;
+  const nav = phone ? 'full' : view.nav;
+  app.className = `pane-${pane} nav-${nav}${phone ? ' phone' : ''}${view.tint === 'plain' ? ' plain' : ''}${reading ? ' reading' : ''}`;
+  if ($('#scrim')) $('#scrim').hidden = true;
   for (const k of ['pane', 'nav', 'tint']) {
     const input = document.querySelector(`#view-menu input[name=${k}][value=${view[k]}]`);
     if (input) input.checked = true;
@@ -886,9 +894,26 @@ async function removeAccount() {
 }
 
 // ---------- wiring ----------
+function setDrawer(open) {
+  $('#app').classList.toggle('drawer', open);
+  $('#scrim').hidden = !open;
+}
+
 function wire() {
   applyView();
-  $('#nav-toggle').onclick = () => { view.nav = view.nav === 'icons' ? 'full' : 'icons'; applyView(); };
+  phoneQuery.addEventListener('change', applyView);
+  $('#drawer-btn').onclick = () => setDrawer(true);
+  $('#fab').onclick = () => openCompose();
+  $('#scrim').onclick = () => setDrawer(false);
+  // Choosing a folder (or anything in the menu) closes it on a phone.
+  $('#sidebar').addEventListener('click', (e) => {
+    if (phoneQuery.matches && e.target.closest('.folder, #compose-btn, #settings-btn, #add-account-btn')) setDrawer(false);
+  });
+  $('#nav-toggle').onclick = () => {
+    if (phoneQuery.matches) return setDrawer(false);
+    view.nav = view.nav === 'icons' ? 'full' : 'icons';
+    applyView();
+  };
   $('#view-btn').onclick = (e) => { e.stopPropagation(); $('#view-menu').hidden = !$('#view-menu').hidden; };
   $('#view-menu').onclick = (e) => e.stopPropagation();
   $('#view-menu').onchange = (e) => { view[e.target.name] = e.target.value; applyView(); };

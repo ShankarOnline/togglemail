@@ -1,0 +1,26 @@
+# Maintainer: Shankar Raj <shankarrajonline at gmail dot com>
+pkgname=togglemail-bin
+pkgver=0.1.2
+pkgrel=1
+pkgdesc="All your email accounts in one window: Gmail, Outlook, iCloud, PhoneMail and any IMAP/POP3/SMTP account"
+arch=('x86_64' 'aarch64')
+url="https://toggleminds.com/togglemail/"
+license=('GPL-3.0-or-later')
+depends=('webkit2gtk-4.1' 'gtk3' 'libsoup3' 'openssl' 'dbus' 'hicolor-icon-theme')
+optdepends=('gnome-keyring: keep account passwords in the system keyring'
+            'kwallet: keep account passwords in KWallet')
+provides=('togglemail')
+conflicts=('togglemail')
+source_x86_64=("https://github.com/ShankarOnline/togglemail/releases/download/v${pkgver}/ToggleMail_${pkgver}_amd64.deb")
+source_aarch64=("https://github.com/ShankarOnline/togglemail/releases/download/v${pkgver}/ToggleMail_${pkgver}_arm64.deb")
+sha256sums_x86_64=('SKIP_FILLED_ON_RELEASE')
+sha256sums_aarch64=('SKIP_FILLED_ON_RELEASE')
+
+package() {
+  bsdtar -xf data.tar.gz -C "$pkgdir"
+  # The licence travels with the package.
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/licenses/$pkgname/README" <<'EOF'
+ToggleMail is licensed under the GNU GPL version 3 or later, with an additional permission for app
+stores. See https://github.com/ShankarOnline/togglemail/blob/main/COPYING.md
+EOF
+}

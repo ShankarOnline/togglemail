@@ -117,6 +117,7 @@
     if (q.get('compose')) openCompose({ to: 'Ravi Kumar <ravi@example.com>', subject: 'Re: Weekend trip: train tickets booked',
       body: '<p>Thanks Ravi! See you all at the station at 5:45.</p><p>Asha</p>' });
     if (q.get('settings')) openSettings(q.get('settings'));
+    if (q.get('drawer')) setDrawer(true);
     document.documentElement.dataset.ready = '1';
   }, 400));
 })();
