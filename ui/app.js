@@ -658,6 +658,8 @@ function openAccountForm(account = null) {
   }
   $('#incoming-label').textContent = f.protocol.value === 'pop3' ? 'POP3 server' : 'IMAP server';
   $('#account-save').disabled = false;
+  $('#app-password-btn').hidden = true;
+  showCertOption('known'); // hidden unless already ticked; a provider choice updates it
   $('#account-dlg').showModal();
 }
 
@@ -681,6 +683,8 @@ async function suggestServers() {
   $('#incoming-label').textContent = f.protocol.value === 'pop3' ? 'POP3 server' : 'IMAP server';
   if (f.provider.value === 'custom') {
     $('#provider-note').textContent = 'Enter the server names and ports your mail provider gives you.';
+    $('#app-password-btn').hidden = true;
+    showCertOption('');
     $('#advanced').open = true;
     $('#account-save').disabled = false;
     return;
@@ -699,8 +703,32 @@ async function suggestServers() {
   if (!f.username.value) f.username.placeholder = f.email.value;
   let note = s.note;
   if (!s.pop3_available && s.supported) note = (note ? note + ' ' : '') + 'This provider offers IMAP only.';
+  if (s.provider === 'icloud' && !/@(icloud|me|mac)\.com$/i.test(f.email.value.trim())) {
+    note = 'iCloud Mail signs in with your @icloud.com address (Settings > your name > iCloud > iCloud Mail on an iPhone), '
+      + 'not an Apple ID that is a Gmail or other address. ' + note;
+  }
   $('#provider-note').textContent = note;
+  // A button to the provider's app-password page, where one is needed.
+  const page = APP_PASSWORD_PAGES[s.provider];
+  const btn = $('#app-password-btn');
+  btn.hidden = !page;
+  btn.onclick = () => page && openUrl(page);
+  showCertOption(s.provider);
   $('#account-save').disabled = !s.supported;
+}
+
+const APP_PASSWORD_PAGES = {
+  gmail: 'https://myaccount.google.com/apppasswords',
+  icloud: 'https://account.apple.com/account/manage/section/security',
+  yahoo: 'https://login.yahoo.com/account/security/app-passwords/list',
+  startmail: 'https://mail.startmail.com/settings',
+};
+
+/** The "accept the server's own certificate" box only makes sense for a local bridge or custom servers. */
+function showCertOption(provider) {
+  const f = $('#account-form');
+  const show = provider === 'proton' || provider === '' || f.accept_invalid_certs.checked;
+  f.accept_invalid_certs.closest('label').hidden = !show;
 }
 
 /// Standard ports when the security choice changes on custom servers.
