@@ -125,8 +125,11 @@ function renderSidebar() {
   for (const a of state.accounts) {
     const box = document.createElement('div');
     box.className = 'acct';
-    const initial = esc((a.name || a.email).trim().charAt(0) || '?');
-    box.innerHTML = `<div class="acct-head" title="${esc(a.email)}"><span class="avatar">${initial}</span><span class="aname">${esc(a.email)}</span><button title="Account settings">⚙</button></div>`;
+    // Two letters (address + domain) and a colour per account, so accounts differ in icons-only view.
+    const [local, domain = ''] = a.email.toLowerCase().split('@');
+    const initial = esc((local.charAt(0) + domain.charAt(0)).toUpperCase() || '?');
+    const hue = [...a.email.toLowerCase()].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+    box.innerHTML = `<div class="acct-head" title="${esc(a.email)}"><span class="avatar" style="background:hsl(${hue} 65% 72%)">${initial}</span><span class="aname">${esc(a.email)}</span><button title="Account settings">⚙</button></div>`;
     box.querySelector('button').onclick = () => openAccountForm(a);
     // With icons-only navigation the avatar opens the account settings.
     box.querySelector('.avatar').onclick = () => view.nav === 'icons' && openAccountForm(a);

@@ -1,6 +1,6 @@
 [package]
 name = "togglemail"
-version = "0.1.0"
+version = "0.1.1"
 description = "ToggleMail - a desktop email app for any IMAP, POP3 and SMTP service"
 authors = ["Shankar Raj"]
 edition = "2021"
