@@ -51,18 +51,23 @@ case "${1:-}" in
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>method</key><string>app-store-connect</string>
-  <key>signingStyle</key><string>automatic</string>
+  <key>signingStyle</key><string>manual</string>
+  <key>signingCertificate</key><string>Apple Distribution</string>
   <key>teamID</key><string>$TEAM</string>
+  <key>provisioningProfiles</key><dict>
+    <key>com.toggleminds.togglemail</key><string>ToggleMail iOS App Store</string>
+    <key>com.toggleminds.togglemail.watchkitapp</key><string>ToggleMail Watch App Store</string>
+  </dict>
   <key>uploadSymbols</key><true/>
 </dict></plist>
 EOF
-    # Lets Xcode make the App Store profiles for the iPhone and watch apps itself.
-    auth=(-allowProvisioningUpdates -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER"
-          -authenticationKeyPath "$API_PRIVATE_KEYS_DIR/AuthKey_$ASC_KEY_ID.p8")
+    # Signed with the Apple Distribution certificate in the login keychain and the two App Store profiles
+    # (made with the App Store Connect API; the API key can't use Xcode's cloud signing).
     xcodebuild archive -project src-tauri/gen/apple/togglemail.xcodeproj -scheme togglemail_iOS -configuration release \
-      -destination generic/platform=iOS -archivePath "$out/ToggleMail.xcarchive" TOGGLEMAIL_RUST_PREBUILT=1 "${auth[@]}" -quiet
+      -destination generic/platform=iOS -archivePath "$out/ToggleMail.xcarchive" TOGGLEMAIL_RUST_PREBUILT=1 \
+      CODE_SIGNING_ALLOWED=NO -quiet
     xcodebuild -exportArchive -archivePath "$out/ToggleMail.xcarchive" -exportOptionsPlist "$out/ExportOptions.plist" \
-      -exportPath "$out" "${auth[@]}" -quiet
+      -exportPath "$out" -quiet
     upload ios "$out/ToggleMail.ipa" ;;
   *)
     echo "Usage: bash scripts/apple-build.sh mac|ios"; exit 1 ;;
